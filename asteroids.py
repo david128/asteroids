@@ -2,12 +2,15 @@ import math
 import random
 
 import pygame
-
+pygame.init()
 
 gameover = False
 bullets = []
 asteroids =[]
 newAsteroids =[]
+score = 0
+count = 0
+lives = 3
 
 screenW =800
 screenH =800
@@ -16,7 +19,7 @@ shipImage = pygame.image.load("ship.png")
 ast100Img = pygame.image.load("ast100.png")
 ast50Img = pygame.image.load("ast50.png")
 ast25Img = pygame.image.load("ast25.png")
-str = pygame.image.load("starbg.png")
+bg = pygame.image.load("starbg.png")
 
 pygame.display.set_caption("Asteroids")
 win = pygame.display.set_mode((screenW,screenH))
@@ -72,6 +75,11 @@ class Player(object):
         elif self.y > screenH + 50:
             self.y = -50
 
+    def reset(self):
+        self.x = screenW/2
+        self.y = screenH/2
+        self.angle= 0
+        self.updateAngle()
 
 class Bullet(object):
 
@@ -111,8 +119,7 @@ class Asteroid(object):
         else:
             self.ydir = -1
 
-        self.xVelocity = 1
-        self.yVelocity = 1
+
 
     def randomSpawn(self):
         #find random pos to spawn asteroid at
@@ -135,19 +142,24 @@ class smallAsteroid(Asteroid):
     def __init__(self,x,y):
         self.size =25
         self.img = ast25Img
+        self.xVelocity = 1.5
+        self.yVelocity = 1.5
         super().__init__(x,y)
 
     def hit(self):
-        super().hit()
 
+        super().hit()
 
 class mediumAsteroid(Asteroid):
     def __init__(self,x,y):
         self.size =50
         self.img = ast50Img
+        self.xVelocity = 1.25
+        self.yVelocity = 1.25
         super().__init__(x,y)
 
     def hit(self):
+
         newAsteroids.append(smallAsteroid(self.x,self.y))
         newAsteroids.append(smallAsteroid(self.x,self.y))
         super().hit()
@@ -158,14 +170,29 @@ class largeAsteroid(Asteroid):
 
         self.img = ast100Img
         self.size =self.img.get_width()
+        self.xVelocity = 1
+        self.yVelocity = 1
 
     def hit(self):
         newAsteroids.append(mediumAsteroid(self.x,self.y))
         newAsteroids.append(mediumAsteroid(self.x,self.y))
         super().hit()
 
+
+
+def resetGame():
+    score=0
+    lives=3
+    count=0
+    player.reset()
+
+    asteroids.clear()
+    bullets.clear()
+
 def redrawWindow():
-    win.blit(str,(0,0))
+    win.blit(bg,(0,0))
+    font = pygame.font.SysFont('arial',20)
+    livesText = font.render('Lives: '+ str(lives),1,(255,255,255))
     player.draw(win)
     for b in bullets:
         if b.isOffScreen():
@@ -174,6 +201,7 @@ def redrawWindow():
             b.draw(win)
     for a in asteroids:
         a.draw(win)
+    win.blit(livesText,(25,25))
     pygame.display.update()
 
 def collisionCheck(ax,ay,asize,bx,by,bsize) :
@@ -183,9 +211,9 @@ def collisionCheck(ax,ay,asize,bx,by,bsize) :
 
 
 
+
 player = Player()
 run = True
-count = 0
 print("hello")
 while run:
     clock.tick(60)
@@ -199,7 +227,10 @@ while run:
             a.move()
             if collisionCheck(a.x, a.y, a.size, player.x, player.y, player.img.get_width()):
                 print("Collision")
-                pass
+                lives-=1
+                asteroids.pop(asteroids.index(a))
+                break
+
             #bullet collisions
             for b in bullets:
                 if collisionCheck(a.x,a.y,a.size,b.x,b.y,b.size):
@@ -220,6 +251,8 @@ while run:
             player.turnRight()
         if inputs[pygame.K_UP]:
             player.moveForward()
+        if inputs[pygame.K_BACKSPACE]:
+            resetGame()
 
 
 
@@ -230,6 +263,9 @@ while run:
             if event.key == pygame.K_SPACE:
                 if not gameover:
                     bullets.append(Bullet())
+
+    if lives <= 0:
+        gameover=True
 
     redrawWindow()
 pygame.quit()
