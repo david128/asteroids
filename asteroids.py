@@ -155,8 +155,9 @@ class mediumAsteroid(Asteroid):
 class largeAsteroid(Asteroid):
     def __init__(self,x,y):
         super().__init__(x,y)
-        self.size =100
+
         self.img = ast100Img
+        self.size =self.img.get_width()
 
     def hit(self):
         newAsteroids.append(mediumAsteroid(self.x,self.y))
@@ -176,11 +177,10 @@ def redrawWindow():
     pygame.display.update()
 
 def collisionCheck(ax,ay,asize,bx,by,bsize) :
-    ahalf = asize/2
-    bhalf = asize/2
-    if(ax-ahalf <= bx-bhalf and bx-ahalf <= ax+bhalf) or (ax-ahalf <=bx+bhalf and bx+bhalf >=ax-ahalf):
-        if(ay-ahalf <= by-bhalf and by-bhalf <= ay+ahalf) or (ay-ahalf >=by+bhalf and by+bhalf >=ay-ahalf):
+    if (bx >= ax and bx <= ax + asize) or (bx + bsize >= ax and bx + bsize <= ax + asize):
+        if (by >= ay and by <= ay + asize) or (by + bsize>= ay and by + bsize <= ay + asize):
             return True
+
 
 
 player = Player()
