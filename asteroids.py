@@ -68,7 +68,7 @@ class AlienBullet(gameObject):
         self.dist = math.hypot(self.dx, self.dy)
         self.dx, self.dy = self.dx / self.dist, self.dy / self.dist
         self.xVelocity = self.dx * 5
-        self.yVelocity = self.dy * 5
+        self.yVelocity = self.dy * -5
 
         super().__init__()
 
@@ -91,7 +91,17 @@ class Player(gameObject):
         self.head = (self.x + self.cosine * self.w/2, self.y -self.sine * self.h/2)
         self.velocityX =0
         self.velocityY =0
+        self.waitTime =0
+        print(self.waitTime)
         super().__init__()
+
+
+    def shoot(self):
+        #makes the player wait 25 frames before firing again
+        if self.waitTime <=0:
+            self.waitTime=25
+            return True
+        return False
 
     def draw(self,win):
         win.blit(self.rotatedSurface,self.rotatedRectangle)
@@ -116,8 +126,22 @@ class Player(gameObject):
         self.updateAngle()
 
     def moveForward(self):
-        self.velocityX += self.cosine *0.1
-        self.velocityY -= self.sine *0.1
+        if (self.velocityX < 100):
+            self.velocityX += self.cosine *0.1
+        if (self.velocityY < 100):
+            self.velocityY -= self.sine *0.1
+
+
+    def slow(self):
+        #slow down
+        self.velocityX = self.velocityX - 0.01* self.velocityX
+        self.velocityY = self.velocityY - 0.01* self.velocityY
+        #stop completely if approaching 0
+        if(abs(self.velocityX) <=0.1):
+            self.velocityX=0
+        if(abs(self.velocityY)<=0.1):
+            self.velocityY=0
+
 
     def checkPos(self):
         if self.x <-50:
@@ -189,7 +213,8 @@ class Asteroid(NonPlayerObject):
 class Alien(NonPlayerObject):
     def __init__(self,x,y,xV,yV):
         self.img = shipImage
-        self.speed =0
+        self.speed =1.5
+        self.randomSpawn()
         super().__init__(x,y,xV,yV)
 
 class smallAsteroid(Asteroid):
@@ -260,7 +285,7 @@ def redrawWindow():
             alienBullets.pop(alienBullets.index(ab))
         else:
             ab.draw(win)
-            print("dsakdja")
+
 
     for a in asteroids:
         a.draw(win)
@@ -277,14 +302,16 @@ def collisionCheck(ax,ay,asize,bx,by,bsize) :
 
 player = Player()
 alien = Alien(0,0,0,0)
+
 run = True
 print("hello")
 while run:
     clock.tick(60)
     count = count+1
     if not gameover:
-        if count % 50 == 0:
+        if count % 100 == 0:
             asteroids.append(random.choice([smallAsteroid(0,0,0,0),mediumAsteroid(0,0,0,0),largeAsteroid(0,0,0,0)]))
+        if count % 150 ==0:
             alienBullets.append(AlienBullet())
 
 
@@ -310,6 +337,9 @@ while run:
             asteroids.append(n)
         newAsteroids.clear()
 
+        for ab in alienBullets:
+            ab.move()
+
         player.move()
         alien.move()
         player.checkPos()
@@ -321,6 +351,9 @@ while run:
             player.turnRight()
         if inputs[pygame.K_UP]:
             player.moveForward()
+        else:
+            player.slow()
+
         if inputs[pygame.K_BACKSPACE]:
             resetGame()
 
@@ -332,10 +365,15 @@ while run:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 if not gameover:
-                    bullets.append(Bullet())
+                    if  player.shoot():
+                        bullets.append(Bullet())
+
+
+    player.waitTime -=1
 
     if lives <= 0:
         gameover=True
 
     redrawWindow()
+
 pygame.quit()
