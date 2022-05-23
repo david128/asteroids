@@ -136,27 +136,40 @@ class Player(gameObject):
         self.updateAngle()
 
 class NonPlayerObject(gameObject):
-    def __init__(self, x, y):
+    def __init__(self, x, y,xV,yV):
         self.x = x
         self.y = y
+        self.xVelocity = xV
+        self.yVelocity = yV
         if (x == 0 and y == 0):
             self.randomSpawn()
-        if (self.x < screenW / 2):
-            # on left side
-            self.xdir = 1
-        else:
-            self.xdir = -1
-        if (self.y < screenH / 2):
-            # on top side
-            self.ydir = 1
-        else:
-            self.ydir = -1
+
 
     def randomSpawn(self):
         # find random pos to spawn asteroid at
         self.spawnPos = random.choice([(random.choice([-50, screenW + 50]), random.randrange(0, screenH)),
                                        (random.randrange(0, screenW), random.choice([-50, screenH + 50]))])
         self.x, self.y = self.spawnPos
+        #choose the correct direction
+        if (self.x < screenW / 2):
+            # on left side
+            xdir = 1
+        else:
+            xdir = -1
+        if (self.y < screenH / 2):
+            # on top side
+            ydir = 1
+        else:
+            ydir = -1
+        #choose a random xV and yV
+        self.randomVelocity(xdir,ydir)
+
+
+    def randomVelocity(self,xDir,yDir):
+        r = random.uniform(0.25, 0.75)
+        self.xVelocity = r*self.speed *xDir
+        self.yVelocity = (1-r)*self.speed * yDir
+
 
     def move(self):
         self.x += self.xVelocity
@@ -167,56 +180,56 @@ class NonPlayerObject(gameObject):
 
 
 class Asteroid(NonPlayerObject):
-    def __init__(self, x,y):
-        super().__init__(x,y)
+    def __init__(self, x,y,xV,yV):
+        super().__init__(x,y,xV,yV)
 
     def hit(self):
         pass
 
 class Alien(NonPlayerObject):
-    def __init__(self,x,y):
+    def __init__(self,x,y,xV,yV):
         self.img = shipImage
-        self.xVelocity = 0
-        self.yVelocity = 0
-        super().__init__(x,y)
+        self.speed =0
+        super().__init__(x,y,xV,yV)
 
 class smallAsteroid(Asteroid):
-    def __init__(self,x,y):
+    def __init__(self,x,y,xV,yV):
         self.size =25
         self.img = ast25Img
-        self.xVelocity = 1.5
-        self.yVelocity = 1.5
-        super().__init__(x,y)
+        self.speed = 1.5
+        super().__init__(x,y,xV,yV)
 
     def hit(self):
         super().hit()
 
 class mediumAsteroid(Asteroid):
-    def __init__(self,x,y):
+    def __init__(self,x,y,xV,yV):
         self.size =50
         self.img = ast50Img
-        self.xVelocity = 1.25
-        self.yVelocity = 1.25
-        super().__init__(x,y)
+        self.speed = 1.25
+        super().__init__(x,y,xV,yV)
 
     def hit(self):
 
-        newAsteroids.append(smallAsteroid(self.x,self.y))
-        newAsteroids.append(smallAsteroid(self.x,self.y))
+        newAsteroids.append(smallAsteroid(self.x,self.y,self.xVelocity,self.yVelocity))
+        a =smallAsteroid(self.x,self.y,0,0)
+        a.randomVelocity(random.choice([-1,1]),random.choice([-1,1]))
+        newAsteroids.append(a)
         super().hit()
 
 class largeAsteroid(Asteroid):
-    def __init__(self,x,y):
-        super().__init__(x,y)
-
+    def __init__(self,x,y,xV,yV):
         self.img = ast100Img
         self.size =self.img.get_width()
-        self.xVelocity = 1
-        self.yVelocity = 1
+        self.speed = 1.0
+        super().__init__(x,y,xV,yV)
+
 
     def hit(self):
-        newAsteroids.append(mediumAsteroid(self.x,self.y))
-        newAsteroids.append(mediumAsteroid(self.x,self.y))
+        newAsteroids.append(mediumAsteroid(self.x,self.y,self.xVelocity,self.yVelocity))
+        a =mediumAsteroid(self.x,self.y,0,0)
+        a.randomVelocity(random.choice([-1,1]),random.choice([-1,1]))
+        newAsteroids.append(a)
         super().hit()
 
 
@@ -263,7 +276,7 @@ def collisionCheck(ax,ay,asize,bx,by,bsize) :
 
 
 player = Player()
-alien = Alien(0,0)
+alien = Alien(0,0,0,0)
 run = True
 print("hello")
 while run:
@@ -271,7 +284,7 @@ while run:
     count = count+1
     if not gameover:
         if count % 50 == 0:
-            asteroids.append(random.choice([smallAsteroid(0,0),mediumAsteroid(0,0),largeAsteroid(0,0)]))
+            asteroids.append(random.choice([smallAsteroid(0,0,0,0),mediumAsteroid(0,0,0,0),largeAsteroid(0,0,0,0)]))
             alienBullets.append(AlienBullet())
 
 
@@ -295,6 +308,7 @@ while run:
 
         for n in newAsteroids:
             asteroids.append(n)
+        newAsteroids.clear()
 
         player.move()
         alien.move()
