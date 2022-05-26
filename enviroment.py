@@ -6,15 +6,10 @@ import numpy as np
 
 
 go =True
-asteroidsGame = asteroids.AsteroidsGame()
 
-print("L")
-while go:
-    asteroidsGame.update()
-    asteroidsGame.redrawWindow()
-print("D")
 
-class asteroidEnv():
+
+class asteroidEnv(gym.Env):
 
     def __init__(self):
         self.asteroidsGame = asteroids.AsteroidsGame()

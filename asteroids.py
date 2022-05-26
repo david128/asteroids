@@ -399,6 +399,7 @@ class AsteroidsGame():
 
     def action(self,action):
 
+        print("action" + action)
         self.delta = self.score
         if action==0:
             self.player.turnLeft()
