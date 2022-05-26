@@ -281,6 +281,7 @@ class AsteroidsGame():
     score = 0
     count = 0
     lives = 3
+    livesFlag = False
 
     def resetGame(self):
         score = 0
@@ -339,6 +340,7 @@ class AsteroidsGame():
                 if self.collisionCheck(a.x, a.y, a.size, self.player.x, self.player.y, self.player.img.get_width()):
                     print("Collision")
                     self.lives -= 1
+                    self.livesFlag=True
                     self.asteroids.pop(self.asteroids.index(a))
                     break
 
@@ -384,9 +386,20 @@ class AsteroidsGame():
         self.player.waitTime -= 1
 
     def observe(self):
-        pass
+        #return all asteroids within 100units of player
+        near = []
+        for a in self.asteroids:
+            dx, dy = self.player.x - a.x, self.player.x - a.x
+            dist = math.hypot(self.dx, self.dy)
+            if dist <100:
+                #return the information needed
+                near.append([(a.x, a.y), a.size, (a.xVelocity, a.yVelocity), dist])
+        return tuple(near)
+
 
     def action(self,action):
+
+        self.delta = self.score
         if action==0:
             self.player.turnLeft()
         if action ==1:
@@ -398,9 +411,16 @@ class AsteroidsGame():
         if action == 3:
             if self.player.shoot():
                 self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
+        self.update()
+        #get change in score
+        self.delta = self.score - self.delta
 
     def evaluate(self):
-        pass
+        reward = self.delta
+        if self.livesFlag:
+            reward  = reward -100
+        self.livesFlag=False #reset flag
+        return reward
 
     def is_done(self):
         if self.lives <= 0:
