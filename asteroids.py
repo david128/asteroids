@@ -270,7 +270,7 @@ class AsteroidsGame():
     def __init__(self):
         self.player = Player()
         self.alien = Alien(0, 0, 0, 0)
-        super(AsteroidsGame, self).__init__()
+
 
     run = True
     gameover = False
@@ -390,7 +390,7 @@ class AsteroidsGame():
         near = []
         for a in self.asteroids:
             dx, dy = self.player.x - a.x, self.player.x - a.x
-            dist = math.hypot(self.dx, self.dy)
+            dist = math.hypot(dx, dy)
             if dist <100:
                 #return the information needed
                 near.append([(a.x, a.y), a.size, (a.xVelocity, a.yVelocity), dist])
@@ -399,7 +399,6 @@ class AsteroidsGame():
 
     def action(self,action):
 
-        print("action" + action)
         self.delta = self.score
         if action==0:
             self.player.turnLeft()
@@ -426,6 +425,6 @@ class AsteroidsGame():
     def is_done(self):
         if self.lives <= 0:
             gameover = True
-            return
+            return True
         else:
             return False
