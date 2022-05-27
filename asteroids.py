@@ -400,15 +400,23 @@ class AsteroidsGame():
     def action(self,action):
 
         self.delta = self.score
-        if action==0:
-            self.player.turnLeft()
-        if action ==1:
-            self.player.turnRight()
-        if action ==2:
+        if action == 0:
             self.player.moveForward()
+        elif action == 1:
+            self.player.moveForward()
+            self.player.turnLeft()
+        elif action == 2:
+            self.player.moveForward()
+            self.player.turnRight()
         else:
+            #not moving forward so slow
             self.player.slow()
-        if action == 3:
+
+        if action==3:
+            self.player.turnLeft()
+        elif action ==4:
+            self.player.turnRight()
+        elif action ==5:
             if self.player.shoot():
                 self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
         self.update()

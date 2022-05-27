@@ -13,7 +13,7 @@ class asteroidEnv(gym.Env):
 
     def __init__(self):
         self.asteroidsGame = asteroids.AsteroidsGame()
-        self.action_space = spaces.Discrete(4)
+        self.action_space = spaces.Discrete(6)
         self.observation_space = spaces.Box(np.array([0, 0, 0, 0, 0]), np.array([10, 10, 10, 10, 10]), dtype=np.int)
 
     def reset(self):
