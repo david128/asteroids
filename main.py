@@ -25,13 +25,3 @@ for i in range(1,1000):
     model.save(f"logs/PPO/{TIMESTEPS*i}")
 
 
-while True:
-    # Take a random action
-    action = env.action_space.sample()
-    obs, reward, done, info = env.step(action)
-
-    # Render the game
-    env.render()
-
-    if done == True:
-        break

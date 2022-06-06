@@ -5,16 +5,12 @@ from gym import spaces
 import numpy as np
 
 
-go =True
-
-
-
 class asteroidEnv(gym.Env):
 
     def __init__(self):
         self.asteroidsGame = asteroids.AsteroidsGame()
         self.action_space = spaces.Discrete(6)
-        self.observation_space = spaces.Box(low=-1000,high=1000,shape=(31,),dtype=np.float32)
+        self.observation_space = spaces.Box(low=-1000,high=1000,shape=(35,),dtype=np.float32)
 
     def reset(self):
         del self.asteroidsGame

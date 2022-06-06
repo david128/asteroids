@@ -44,6 +44,16 @@ class GameObject(object):
         if self.x < -50 or self.x > screenW + 50 or self.y < -50 or self.y > screenH + 50:
             return True
 
+    def checkPos(self):
+        if self.x < -50:
+            self.x = screenW + 50
+        elif self.x > screenW + 50:
+            self.x = -50
+        if self.y < -50:
+            self.y = screenH + 50
+        elif self.y > screenH + 50:
+            self.y = -50
+
 
 class Player(GameObject):
     def __init__(self):
@@ -105,20 +115,10 @@ class Player(GameObject):
         self.velocityX = self.velocityX - 0.01 * self.velocityX
         self.velocityY = self.velocityY - 0.01 * self.velocityY
         # stop completely if approaching 0
-        if (abs(self.velocityX) <= 0.1):
+        if (abs(self.velocityX) <= 0.01):
             self.velocityX = 0
-        if (abs(self.velocityY) <= 0.1):
+        if (abs(self.velocityY) <= 0.01):
             self.velocityY = 0
-
-    def checkPos(self):
-        if self.x < -50:
-            self.x = screenW + 50
-        elif self.x > screenW + 50:
-            self.x = -50
-        if self.y < -50:
-            self.y = screenH + 50
-        elif self.y > screenH + 50:
-            self.y = -50
 
     def reset(self):
         self.x = screenW / 2
@@ -173,7 +173,22 @@ class Alien(NonPlayerObject):
         self.img = shipImage
         self.speed = 1.5
         self.randomSpawn()
+        self.dead = True
+        self.waitTime = 1000
         super().__init__(x, y, xV, yV)
+
+    def update(self, ):
+        if self.dead:
+            # makes the player wait 25 frames before firing again
+            if self.waitTime <= 0:
+                self.dead = False
+                self.randomSpawn()
+            else:
+                self.waitTime -= 1
+
+    def die(self, respawnTime):
+        self.dead = True
+        self.waitTime = respawnTime
 
 
 class Bullet(GameObject):
@@ -196,8 +211,10 @@ class AlienBullet(GameObject):
         self.x = ax
         self.y = ay
         self.size = 3
+        rx = random.randrange(1, 50)
+        ry = random.randrange(1, 50)
 
-        self.dx, self.dy = px - self.x, py - self.y
+        self.dx, self.dy = (px + ry) - self.x, (py + ry) - self.y
         self.dist = math.hypot(self.dx, self.dy)
         self.dx, self.dy = self.dx / self.dist, self.dy / self.dist
         self.xVelocity = self.dx * 5
@@ -213,8 +230,8 @@ class Asteroid(NonPlayerObject):
     def __init__(self, x, y, xV, yV):
         super().__init__(x, y, xV, yV)
 
-    def incrementScore(self,amount):
-        self.score+=amount
+    def incrementScore(self, amount):
+        self.score += amount
 
     def hit(self):
         return self.amount
@@ -238,7 +255,7 @@ class MediumAsteroid(Asteroid):
         self.img = ast50Img
         self.speed = 1.25
         self.newAsteroids = newAsteroids
-        self.amount =50
+        self.amount = 50
         super().__init__(x, y, xV, yV)
 
     def hit(self):
@@ -249,9 +266,8 @@ class MediumAsteroid(Asteroid):
         return self.amount
 
 
-
 class LargeAsteroid(Asteroid):
-    def __init__(self, x, y, xV, yV,newAsteroids):
+    def __init__(self, x, y, xV, yV, newAsteroids):
         self.img = ast100Img
         self.size = self.img.get_width()
         self.speed = 1.0
@@ -270,9 +286,10 @@ class LargeAsteroid(Asteroid):
 class AsteroidsGame():
 
     def __init__(self):
+        self.alienRespawnTime = 1000
+        self.asteroidSpawnTime = 150
         self.player = Player()
         self.alien = Alien(0, 0, 0, 0)
-
 
     run = True
     gameover = False
@@ -289,6 +306,7 @@ class AsteroidsGame():
         score = 0
         lives = 3
         count = 0
+        self.alienRespawnTime = 200
         self.player.reset()
         self.asteroids.clear()
         self.bullets.clear()
@@ -300,7 +318,8 @@ class AsteroidsGame():
         livesText = font.render('Lives: ' + str(self.lives), 1, (255, 255, 255))
         scoreText = font.render('Score: ' + str(self.score), 1, (255, 255, 255))
         self.player.draw(win)
-        self.alien.draw(win)
+        if not self.alien.dead:
+            self.alien.draw(win)
         for b in self.bullets:
             if b.isOffScreen():
                 self.bullets.pop(self.bullets.index(b))
@@ -315,7 +334,7 @@ class AsteroidsGame():
         for a in self.asteroids:
             a.draw(win)
         win.blit(livesText, (25, 25))
-        win.blit(scoreText, (screenW-100,25))
+        win.blit(scoreText, (screenW - 100, 25))
         pygame.display.update()
 
     def collisionCheck(self, ax, ay, asize, bx, by, bsize):
@@ -328,39 +347,63 @@ class AsteroidsGame():
         self.count += 1
 
         if not self.gameover:
-            if self.count % 100 == 0:
+            if self.count % self.asteroidSpawnTime == 0:
                 self.asteroids.append(
                     random.choice([SmallAsteroid(0, 0, 0, 0), MediumAsteroid(0, 0, 0, 0, self.newAsteroids),
                                    LargeAsteroid(0, 0, 0, 0, self.newAsteroids)]))
-            if self.count % 150 == 0:
-                self.alienBullets.append(AlienBullet(self.alien.x, self.alien.y, self.player.x, self.player.y))
+
+            if not self.alien.dead:
+                self.alien.move()
+                if self.count % 150 == 0:
+                    self.alienBullets.append(AlienBullet(self.alien.x, self.alien.y, self.player.x, self.player.y))
+            else:
+                self.alien.update()
 
             for b in self.bullets:
                 b.move()
             for a in self.asteroids:
+                a.checkPos()
                 a.move()
                 if self.collisionCheck(a.x, a.y, a.size, self.player.x, self.player.y, self.player.img.get_width()):
                     print("Collision")
                     self.lives -= 1
-                    self.livesFlag=True
+                    self.livesFlag = True
                     self.asteroids.pop(self.asteroids.index(a))
                     break
+
+                # collision between alien and asteroids
+                if not self.alien.dead:
+                    if self.collisionCheck(a.x, a.y, a.size, self.alien.x, self.alien.y, self.alien.img.get_width()):
+                        self.alien.die(self.alienRespawnTime)
+
+                # collision check with alien bullets
+                for ab in self.alienBullets:
+                    if self.collisionCheck(a.x, a.y, a.size, ab.x, ab.y, ab.size):
+                        self.asteroids.pop(self.asteroids.index(a))
+                        self.alienBullets.pop(self.alienBullets.index(ab))
 
                 # bullet collisions
                 for b in self.bullets:
                     if self.collisionCheck(a.x, a.y, a.size, b.x, b.y, b.size):
                         self.score += a.hit()
-
-                        print("b")
                         self.asteroids.pop(self.asteroids.index(a))
                         self.bullets.pop(self.bullets.index(b))
+
+            for ab in self.alienBullets:
+                ab.move()
+                if self.collisionCheck(self.player.x, self.player.y, self.player.img.get_width(),ab.x, ab.y, ab.size):
+                    print("ab Collision")
+                    self.lives -= 1
+                    self.livesFlag = True
+                    self.alienBullets.pop(self.alienBullets.index(ab))
+                    break
+
 
             for n in self.newAsteroids:
                 self.asteroids.append(n)
             self.newAsteroids.clear()
 
-            for ab in self.alienBullets:
-                ab.move()
+
 
             inputs = pygame.key.get_pressed()
             if inputs[pygame.K_LEFT]:
@@ -376,42 +419,48 @@ class AsteroidsGame():
                     self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
 
             self.player.move()
-            self.alien.move()
-            self.player.checkPos()
 
+            self.player.checkPos()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
 
-
         self.player.waitTime -= 1
 
-    def astDist(self,ax,ay):
+    def distance(self, ax, ay):
         dx, dy = self.player.x - ax, self.player.y - ay
         dist = math.hypot(dx, dy)
         return dist
 
     def observe(self):
-        #return all asteroids within 100units of player
+        # return all asteroids within 100units of player
         near = collections.deque(maxlen=NEARASTEROIDS)
-        self.asteroids = sorted(self.asteroids,key= lambda a: self.astDist(a.x,a.y))
-        for i in range (NEARASTEROIDS):
-            #fill the near list with nearest asteroids
+        self.asteroids = sorted(self.asteroids, key=lambda a: self.distance(a.x, a.y))
+        self.alienBullets =sorted(self.alienBullets, key=lambda a: self.distance(a.x, a.y))
+        for i in range(NEARASTEROIDS):
+            # fill the near list with nearest asteroids
             if (len(self.asteroids) > i):
-                near.append([self.asteroids[i].x, self.asteroids[i].y, self.asteroids[i].size, self.asteroids[i].xVelocity, self.asteroids[i].yVelocity])
+                near.append(
+                    [self.asteroids[i].x, self.asteroids[i].y, self.asteroids[i].size, self.asteroids[i].xVelocity,
+                     self.asteroids[i].yVelocity])
             else:
-                #else if not enough exist fill with empty
-                near.append([-1, -1, -1, 0,0])
+                # else if not enough exist fill with empty
+                near.append([-1, -1, -1, 0, 0])
 
-
-        o = [self.player.x,self.player.y,self.player.velocityX,self.player.velocityY,self.player.cosine,self.player.sine]
+        o = [self.player.x, self.player.y, self.player.velocityX, self.player.velocityY, self.player.cosine,
+             self.player.sine]
+        if len(self.alienBullets) ==0:
+            o = o+ [-1,-1,0,0]
+        else:
+            ab = self.alienBullets[0]
+            o = o+ [ab.x,ab.y,ab.xVelocity,ab.yVelocity]
         for ast in near:
-            o = o+ list (ast)
+            o = o + list(ast)
 
         return o
 
-    def action(self,action):
+    def action(self, action):
 
         self.delta = self.score
         if action == 0:
@@ -423,25 +472,25 @@ class AsteroidsGame():
             self.player.moveForward()
             self.player.turnRight()
         else:
-            #not moving forward so slow
+            # not moving forward so slow
             self.player.slow()
 
-        if action==3:
+        if action == 3:
             self.player.turnLeft()
-        elif action ==4:
+        elif action == 4:
             self.player.turnRight()
-        elif action ==5:
+        elif action == 5:
             if self.player.shoot():
                 self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
         self.update()
-        #get change in score
+        # get change in score
         self.delta = self.score - self.delta
 
     def evaluate(self):
         reward = self.delta
         if self.livesFlag:
-            reward  = reward -100
-        self.livesFlag=False #reset flag
+            reward = reward - 100
+        self.livesFlag = False  # reset flag
         return reward
 
     def is_done(self):
