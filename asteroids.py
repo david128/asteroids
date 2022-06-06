@@ -11,11 +11,13 @@ import time
 font = cv2.FONT_HERSHEY_COMPLEX_SMALL
 
 import pygame
+import collections
 
 pygame.init()
 
 screenW = 800
 screenH = 800
+NEARASTEROIDS = 5
 
 shipImage = pygame.image.load("ship.png")
 ast100Img = pygame.image.load("ast100.png")
@@ -385,17 +387,29 @@ class AsteroidsGame():
 
         self.player.waitTime -= 1
 
+    def astDist(self,ax,ay):
+        dx, dy = self.player.x - ax, self.player.y - ay
+        dist = math.hypot(dx, dy)
+        return dist
+
     def observe(self):
         #return all asteroids within 100units of player
-        near = []
-        for a in self.asteroids:
-            dx, dy = self.player.x - a.x, self.player.x - a.x
-            dist = math.hypot(dx, dy)
-            if dist <100:
-                #return the information needed
-                near.append([(a.x, a.y), a.size, (a.xVelocity, a.yVelocity), dist])
-        return tuple(near)
+        near = collections.deque(maxlen=NEARASTEROIDS)
+        self.asteroids = sorted(self.asteroids,key= lambda a: self.astDist(a.x,a.y))
+        for i in range (NEARASTEROIDS):
+            #fill the near list with nearest asteroids
+            if (len(self.asteroids) > i):
+                near.append([self.asteroids[i].x, self.asteroids[i].y, self.asteroids[i].size, self.asteroids[i].xVelocity, self.asteroids[i].yVelocity])
+            else:
+                #else if not enough exist fill with empty
+                near.append([-1, -1, -1, 0,0])
 
+
+        o = [self.player.x,self.player.y,self.player.velocityX,self.player.velocityY,self.player.cosine,self.player.sine]
+        for ast in near:
+            o = o+ list (ast)
+
+        return o
 
     def action(self,action):
 

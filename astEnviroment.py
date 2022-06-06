@@ -14,7 +14,7 @@ class asteroidEnv(gym.Env):
     def __init__(self):
         self.asteroidsGame = asteroids.AsteroidsGame()
         self.action_space = spaces.Discrete(6)
-        self.observation_space = spaces.Box(np.array([0, 0, 0, 0, 0]), np.array([10, 10, 10, 10, 10]), dtype=np.int)
+        self.observation_space = spaces.Box(low=-1000,high=1000,shape=(31,),dtype=np.float32)
 
     def reset(self):
         del self.asteroidsGame
@@ -27,6 +27,7 @@ class asteroidEnv(gym.Env):
         obs = self.asteroidsGame.observe()
         reward = self.asteroidsGame.evaluate()
         done = self.asteroidsGame.is_done()
+        self.render()
         return obs, reward, done, {}
 
     def render(self, mode="human", close=False):
