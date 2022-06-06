@@ -343,7 +343,8 @@ class AsteroidsGame():
                 return True
 
     def update(self):
-        clock.tick(60)
+        #clock tick removed to allow for faster playing
+        #clock.tick(60)
         self.count += 1
 
         if not self.gameover:
