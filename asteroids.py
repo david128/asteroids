@@ -498,7 +498,8 @@ class AsteroidsGame():
         reward = self.delta
         if self.livesFlag:
             reward = reward - 10000
-        self.livesFlag = False  # reset flag
+            self.livesFlag = False  # reset flag
+
         return reward
 
     def is_done(self):
