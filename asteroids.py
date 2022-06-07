@@ -17,7 +17,7 @@ pygame.init()
 
 screenW = 800
 screenH = 800
-NEARASTEROIDS = 5
+NEARASTEROIDS = 10
 
 shipImage = pygame.image.load("ship.png")
 ast100Img = pygame.image.load("ast100.png")
@@ -362,6 +362,13 @@ class AsteroidsGame():
 
             for b in self.bullets:
                 b.move()
+                #col check bullets with alien
+                if not self.alien.dead:
+                    if self.collisionCheck(self.alien.x, self.alien.y, self.alien.img.get_width(),b.x, b.y, b.size):
+                        print("ab Collision")
+                        self.score += 200
+                        self.bullets.pop(self.bullets.index(b))
+
             for a in self.asteroids:
                 a.checkPos()
                 a.move()
@@ -490,7 +497,7 @@ class AsteroidsGame():
     def evaluate(self):
         reward = self.delta
         if self.livesFlag:
-            reward = reward - 100
+            reward = reward - 10000
         self.livesFlag = False  # reset flag
         return reward
 
