@@ -12,10 +12,11 @@ env = astEnviroment.asteroidEnv()
 env.reset()
 obs = env.reset()
 TIMESTEPS =1000
+NUMEPISODES =1000
 # not DDPG not SAC not TD3
 
-agent = A2C_agent.A2C_agent(env)
-agent.train(TIMESTEPS, 1000)
+agent = PPO_agent.PPO_agent(env)
+agent.train(TIMESTEPS, NUMEPISODES)
 
 
 
