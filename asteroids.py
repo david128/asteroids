@@ -355,23 +355,26 @@ class AsteroidsGame():
 
             if not self.alien.dead:
                 self.alien.move()
-                if self.count % 150 == 0:
+                if self.count % 200 == 0:
                     self.alienBullets.append(AlienBullet(self.alien.x, self.alien.y, self.player.x, self.player.y))
             else:
                 self.alien.update()
 
             for b in self.bullets:
                 b.move()
-                #col check bullets with alien
+                b.move()
+                # col check bullets with alien
                 if not self.alien.dead:
                     if self.collisionCheck(self.alien.x, self.alien.y, self.alien.img.get_width(),b.x, b.y, b.size):
                         print("ab Collision")
+                        self.alien.die(self.alienRespawnTime)
                         self.score += 200
                         self.bullets.pop(self.bullets.index(b))
 
             for a in self.asteroids:
-                a.checkPos()
                 a.move()
+                a.checkPos()
+                # col check between asteroid and player
                 if self.collisionCheck(a.x, a.y, a.size, self.player.x, self.player.y, self.player.img.get_width()):
                     print("Collision")
                     self.lives -= 1
@@ -389,6 +392,7 @@ class AsteroidsGame():
                     if self.collisionCheck(a.x, a.y, a.size, ab.x, ab.y, ab.size):
                         self.asteroids.pop(self.asteroids.index(a))
                         self.alienBullets.pop(self.alienBullets.index(ab))
+                        break
 
                 # bullet collisions
                 for b in self.bullets:
@@ -396,6 +400,7 @@ class AsteroidsGame():
                         self.score += a.hit()
                         self.asteroids.pop(self.asteroids.index(a))
                         self.bullets.pop(self.bullets.index(b))
+                        break
 
             for ab in self.alienBullets:
                 ab.move()
@@ -407,12 +412,12 @@ class AsteroidsGame():
                     break
 
 
+            # add the new asteroids to list
             for n in self.newAsteroids:
                 self.asteroids.append(n)
             self.newAsteroids.clear()
 
-
-
+            '''
             inputs = pygame.key.get_pressed()
             if inputs[pygame.K_LEFT]:
                 self.player.turnLeft()
@@ -424,7 +429,7 @@ class AsteroidsGame():
                 self.player.slow()
             if inputs[pygame.K_SPACE]:
                 if self.player.shoot():
-                    self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
+                    self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))'''
 
             self.player.move()
 
@@ -479,17 +484,42 @@ class AsteroidsGame():
         elif action == 2:
             self.player.moveForward()
             self.player.turnRight()
+        elif action == 3:
+            self.player.moveForward()
+            if self.player.shoot():
+                self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
+        elif action == 4:
+            self.player.moveForward()
+            self.player.turnLeft()
+            if self.player.shoot():
+                self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
+        elif action == 5:
+            self.player.moveForward()
+            self.player.turnRight()
+            if self.player.shoot():
+                self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
         else:
             # not moving forward so slow
             self.player.slow()
 
-        if action == 3:
+        if action == 6:
             self.player.turnLeft()
-        elif action == 4:
+        elif action == 7:
             self.player.turnRight()
-        elif action == 5:
+        if action == 8:
+            self.player.turnLeft()
             if self.player.shoot():
                 self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
+        elif action == 9:
+            self.player.turnRight()
+            if self.player.shoot():
+                self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
+        elif action == 10:
+            if self.player.shoot():
+                self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
+        elif action ==11:
+            #do nothing
+            pass
         self.update()
         # get change in score
         self.delta = self.score - self.delta

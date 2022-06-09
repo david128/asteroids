@@ -9,7 +9,7 @@ class asteroidEnv(gym.Env):
 
     def __init__(self):
         self.asteroidsGame = asteroids.AsteroidsGame()
-        self.action_space = spaces.Discrete(6)
+        self.action_space = spaces.Discrete(11)
         self.observation_space = spaces.Box(low=-1000,high=1000,shape=(60,),dtype=np.float32)
 
     def reset(self):
