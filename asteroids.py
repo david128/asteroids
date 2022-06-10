@@ -473,6 +473,11 @@ class AsteroidsGame():
 
         return o
 
+    def getState(self):
+        state = pygame.surfarray.array3d(pygame.display.get_surface()).astype(np.uint8)
+        state = state.swapaxes(0, 1)
+        return state
+
     def action(self, action):
 
         self.delta = self.score
