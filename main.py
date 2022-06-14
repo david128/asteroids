@@ -11,12 +11,11 @@ import time
 env = astEnviroment.asteroidEnv()
 env.reset()
 obs = env.reset()
-TIMESTEPS =1000
-NUMEPISODES =1000
+TIMESTEPS = 1000
+NUMEPISODES = 1000
 # not DDPG not SAC not TD3
 
-agent = PPO_agent.PPO_agent(env)
-agent.train(TIMESTEPS, NUMEPISODES)
-
+# agent = PPO_agent.PPO_agent(env)
+# agent.train(TIMESTEPS, NUMEPISODES)
 
 

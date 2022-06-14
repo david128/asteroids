@@ -17,7 +17,7 @@ pygame.init()
 
 screenW = 800
 screenH = 800
-NEARASTEROIDS = 10
+NEARASTEROIDS = 5
 
 shipImage = pygame.image.load("ship.png")
 ast100Img = pygame.image.load("ast100.png")
@@ -62,7 +62,7 @@ class Player(GameObject):
         self.h = self.img.get_height()
         self.x = screenW / 2
         self.y = screenH / 2
-        self.angle = 0
+        self.angle = 0.0
         self.rotatedSurface = pygame.transform.rotate(self.img, self.angle)
         self.rotatedRectangle = self.rotatedSurface.get_rect()
         self.rotatedRectangle.center = (self.x, self.y)
@@ -343,8 +343,8 @@ class AsteroidsGame():
                 return True
 
     def update(self):
-        #clock tick removed to allow for faster playing
-        #clock.tick(60)
+        # clock tick removed to allow for faster playing
+        # clock.tick(60)
         self.count += 1
 
         if not self.gameover:
@@ -365,7 +365,7 @@ class AsteroidsGame():
                 b.move()
                 # col check bullets with alien
                 if not self.alien.dead:
-                    if self.collisionCheck(self.alien.x, self.alien.y, self.alien.img.get_width(),b.x, b.y, b.size):
+                    if self.collisionCheck(self.alien.x, self.alien.y, self.alien.img.get_width(), b.x, b.y, b.size):
                         print("ab Collision")
                         self.alien.die(self.alienRespawnTime)
                         self.score += 200
@@ -404,13 +404,12 @@ class AsteroidsGame():
 
             for ab in self.alienBullets:
                 ab.move()
-                if self.collisionCheck(self.player.x, self.player.y, self.player.img.get_width(),ab.x, ab.y, ab.size):
+                if self.collisionCheck(self.player.x, self.player.y, self.player.img.get_width(), ab.x, ab.y, ab.size):
                     print("ab Collision")
                     self.lives -= 1
                     self.livesFlag = True
                     self.alienBullets.pop(self.alienBullets.index(ab))
                     break
-
 
             # add the new asteroids to list
             for n in self.newAsteroids:
@@ -450,7 +449,7 @@ class AsteroidsGame():
         # return all asteroids within 100units of player
         near = collections.deque(maxlen=NEARASTEROIDS)
         self.asteroids = sorted(self.asteroids, key=lambda a: self.distance(a.x, a.y))
-        self.alienBullets =sorted(self.alienBullets, key=lambda a: self.distance(a.x, a.y))
+        self.alienBullets = sorted(self.alienBullets, key=lambda a: self.distance(a.x, a.y))
         for i in range(NEARASTEROIDS):
             # fill the near list with nearest asteroids
             if (len(self.asteroids) > i):
@@ -461,13 +460,12 @@ class AsteroidsGame():
                 # else if not enough exist fill with empty
                 near.append([-1, -1, -1, 0, 0])
 
-        o = [self.player.x, self.player.y, self.player.velocityX, self.player.velocityY, self.player.cosine,
-             self.player.sine]
-        if len(self.alienBullets) ==0:
-            o = o+ [-1,-1,0,0]
+        o = [self.player.x, self.player.y, self.player.velocityX, self.player.velocityY, self.player.angle]
+        if len(self.alienBullets) == 0:
+            o = o + [-1, -1, 0, 0]
         else:
             ab = self.alienBullets[0]
-            o = o+ [ab.x,ab.y,ab.xVelocity,ab.yVelocity]
+            o = o + [ab.x, ab.y, ab.xVelocity, ab.yVelocity]
         for ast in near:
             o = o + list(ast)
 
@@ -484,41 +482,19 @@ class AsteroidsGame():
         elif action == 2:
             self.player.moveForward()
             self.player.turnRight()
-        elif action == 3:
-            self.player.moveForward()
-            if self.player.shoot():
-                self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
-        elif action == 4:
-            self.player.moveForward()
-            self.player.turnLeft()
-            if self.player.shoot():
-                self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
-        elif action == 5:
-            self.player.moveForward()
-            self.player.turnRight()
-            if self.player.shoot():
-                self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
         else:
             # not moving forward so slow
             self.player.slow()
 
-        if action == 6:
+        if action == 3:
             self.player.turnLeft()
-        elif action == 7:
+        elif action == 4:
             self.player.turnRight()
-        if action == 8:
-            self.player.turnLeft()
+        if action == 5:
             if self.player.shoot():
                 self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
-        elif action == 9:
-            self.player.turnRight()
-            if self.player.shoot():
-                self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
-        elif action == 10:
-            if self.player.shoot():
-                self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
-        elif action ==11:
-            #do nothing
+        elif action == 6:
+            # do nothing
             pass
         self.update()
         # get change in score
