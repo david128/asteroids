@@ -1,4 +1,5 @@
 import asteroids
+import asteroidsEasy
 
 import gym
 from gym import spaces
@@ -8,13 +9,13 @@ import numpy as np
 class asteroidEnv(gym.Env):
 
     def __init__(self):
-        self.asteroidsGame = asteroids.AsteroidsGame()
+        self.asteroidsGame = asteroidsEasy.AsteroidsGame()
         self.action_space = spaces.Discrete(7)
         self.observation_space = spaces.Box(low=-1000,high=1000,shape=(15,),dtype=np.float32)
 
     def reset(self):
         del self.asteroidsGame
-        self.asteroidsGame = asteroids.AsteroidsGame()
+        self.asteroidsGame = asteroidsEasy.AsteroidsGame()
         obs = self.asteroidsGame.observe()
         return obs
 

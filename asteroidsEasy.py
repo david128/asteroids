@@ -192,13 +192,8 @@ class Alien(NonPlayerObject):
         super().__init__(x, y, xV, yV)
 
     def update(self, ):
-        if self.dead:
-            # makes the player wait 25 frames before firing again
-            if self.waitTime <= 0:
-                self.dead = False
-                self.randomSpawn()
-            else:
-                self.waitTime -= 1
+        pass
+        #dont spawn
 
     def die(self, respawnTime):
         self.dead = True
@@ -302,9 +297,10 @@ class AsteroidsGame():
 
     def __init__(self):
         self.alienRespawnTime = 1000
-        self.asteroidSpawnTime = 150
+        self.asteroidSpawnTime = 300
         self.player = Player()
         self.alien = Alien(0, 0, 0, 0)
+        self.alien.die(1)
 
     run = True
     gameover = False
@@ -431,22 +427,9 @@ class AsteroidsGame():
                 self.asteroids.append(n)
             self.newAsteroids.clear()
 
-            '''
-            inputs = pygame.key.get_pressed()
-            if inputs[pygame.K_LEFT]:
-                self.player.turnLeft()
-            if inputs[pygame.K_RIGHT]:
-                self.player.turnRight()
-            if inputs[pygame.K_UP]:
-                self.player.moveForward()
-
-            if inputs[pygame.K_SPACE]:
-                if self.player.shoot():
-                    self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))'''
 
             self.player.move()
             self.player.slow()
-
             self.player.checkPos()
 
         for event in pygame.event.get():

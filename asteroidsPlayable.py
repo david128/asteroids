@@ -22,8 +22,6 @@ NEARASTEROIDS = 5
 shipImage = pygame.image.load("ship.png")
 ast100Img = pygame.image.load("ast100.png")
 ast50Img = pygame.image.load("ast50.png")
-ast25Img = pygame.image.load("ast25.png")
-bg = pygame.image.load("starbg.png")
 
 pygame.display.set_caption("Asteroids")
 win = pygame.display.set_mode((screenW, screenH))
@@ -31,17 +29,27 @@ win = pygame.display.set_mode((screenW, screenH))
 clock = pygame.time.Clock()
 
 
+def play():
+    a = AsteroidsGame()
+    while not a.gameover:
+        a.update()
+        a.redrawWindow()
+
+
 def ccw(A, B, C):
     return (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x)
+
 
 # Return true if line segments AB and CD intersect
 def intersect(A, B, C, D):
     return ccw(A, C, D) != ccw(B, C, D) and ccw(A, B, C) != ccw(A, B, D)
 
+
 class Point():
     def __init__(self, x, y):
         self.x = x
         self.y = y
+
 
 class GameObject(object):
     def __init__(self):
@@ -297,7 +305,6 @@ class LargeAsteroid(Asteroid):
         return self.amount
 
 
-
 class AsteroidsGame():
 
     def __init__(self):
@@ -431,7 +438,6 @@ class AsteroidsGame():
                 self.asteroids.append(n)
             self.newAsteroids.clear()
 
-            '''
             inputs = pygame.key.get_pressed()
             if inputs[pygame.K_LEFT]:
                 self.player.turnLeft()
@@ -439,14 +445,13 @@ class AsteroidsGame():
                 self.player.turnRight()
             if inputs[pygame.K_UP]:
                 self.player.moveForward()
-
             if inputs[pygame.K_SPACE]:
                 if self.player.shoot():
-                    self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))'''
+                    self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
+
 
             self.player.move()
             self.player.slow()
-
             self.player.checkPos()
 
         for event in pygame.event.get():
@@ -460,88 +465,18 @@ class AsteroidsGame():
         dist = math.hypot(dx, dy)
         return dist
 
-    def checkLineIntersection(self, x1,y1,x2,y2, asteroid):
+    def checkLineIntersection(self, x1, y1, x2, y2, asteroid):
         # check for intersection between line and line at asteroid origin
-        vertical1 = Point(asteroid.x, asteroid.y -asteroid.size/2)
-        vertical2 = Point(asteroid.x, asteroid.y +asteroid.size/2)
-        horizontal1 = Point(asteroid.x- asteroid.size/2, asteroid.y)
-        horizontal2 = Point(asteroid.x+ asteroid.size/2, asteroid.y)
-        p1 = Point(x1,y1)
-        p2 = Point(x2,y2)
-
+        vertical1 = Point(asteroid.x, asteroid.y - asteroid.size / 2)
+        vertical2 = Point(asteroid.x, asteroid.y + asteroid.size / 2)
+        horizontal1 = Point(asteroid.x - asteroid.size / 2, asteroid.y)
+        horizontal2 = Point(asteroid.x + asteroid.size / 2, asteroid.y)
+        p1 = Point(x1, y1)
+        p2 = Point(x2, y2)
 
         # check for intersection between line and asteroid axis
-        if(intersect(p1,p2,vertical1,vertical2) or intersect(p1,p2,horizontal1,horizontal2)):
+        if (intersect(p1, p2, vertical1, vertical2) or intersect(p1, p2, horizontal1, horizontal2)):
             return True
-
-    def observe(self):
-        angle = 0.0
-        radius = 200
-        radar = [0.0] * 8
-
-        #sort so that nearest is at the front and will be first added to radar
-        self.asteroids = sorted(self.asteroids, key=lambda a: self.distance(a.x, a.y))
-        self.alienBullets = sorted(self.alienBullets, key=lambda a: self.distance(a.x, a.y))
-
-        # loop through N,NE,E,SE,S,SW,W,NW directions and check for asteroids if the player can "see" them
-        for i in range(8):
-            # find the end point of the player's vision
-            x2 = self.player.x + radius* math.sin(angle)
-            y2 = self.player.y + radius* math.cos(angle)
-            angle+=45
-            #check all asteroids
-            for a in self.asteroids:
-                if self.checkLineIntersection(self.player.x,self.player.y, x2,y2,a):
-                    #set the value to the distance
-                    radar[i]=self.distance(a.x,a.y)
-                    #print("radar " + str(i) + " angle " + str(angle) + " distance " +str(radar[i]))
-                    break
-
-        # observation object to be returned including information about the player
-        o = [self.player.x, self.player.y, self.player.velocityX, self.player.velocityY, self.player.angle]
-        #add radar info to observation
-        o = o+list(radar)
-        #add information about nearest bullet
-        if len(self.alienBullets) == 0:
-            o = o + [0, 0]
-        else:
-            ab = self.alienBullets[0]
-            o = o + [ab.x, ab.y]
-        return o
-
-    def action(self, action):
-
-        self.delta = self.score
-        if action == 0:
-            self.player.moveForward()
-        elif action == 1:
-            self.player.moveForward()
-            self.player.turnLeft()
-        elif action == 2:
-            self.player.moveForward()
-            self.player.turnRight()
-
-        if action == 3:
-            self.player.turnLeft()
-        elif action == 4:
-            self.player.turnRight()
-        if action == 5:
-            if self.player.shoot():
-                self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
-        elif action == 6:
-            # do nothing
-            pass
-        self.update()
-        # get change in score
-        self.delta = self.score - self.delta
-
-    def evaluate(self):
-        reward = self.delta
-        if self.livesFlag:
-            reward = reward - 10000
-            self.livesFlag = False  # reset flag
-
-        return reward
 
     def is_done(self):
         if self.lives <= 0:
