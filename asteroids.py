@@ -31,6 +31,18 @@ win = pygame.display.set_mode((screenW, screenH))
 clock = pygame.time.Clock()
 
 
+def ccw(A, B, C):
+    return (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x)
+
+# Return true if line segments AB and CD intersect
+def intersect(A, B, C, D):
+    return ccw(A, C, D) != ccw(B, C, D) and ccw(A, B, C) != ccw(A, B, D)
+
+class Point():
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
 class GameObject(object):
     def __init__(self):
         self.x
@@ -283,6 +295,7 @@ class LargeAsteroid(Asteroid):
         return self.amount
 
 
+
 class AsteroidsGame():
 
     def __init__(self):
@@ -445,30 +458,53 @@ class AsteroidsGame():
         dist = math.hypot(dx, dy)
         return dist
 
+    def checkLineIntersection(self, x1,y1,x2,y2, asteroid):
+        # check for intersection between line and line at asteroid origin
+        vertical1 = Point(asteroid.x, asteroid.y -asteroid.size/2)
+        vertical2 = Point(asteroid.x, asteroid.y +asteroid.size/2)
+        horizontal1 = Point(asteroid.x- asteroid.size/2, asteroid.y)
+        horizontal2 = Point(asteroid.x+ asteroid.size/2, asteroid.y)
+        p1 = Point(x1,y1)
+        p2 = Point(x2,y2)
+
+
+        # check for intersection between line and asteroid axis
+        if(intersect(p1,p2,vertical1,vertical2) or intersect(p1,p2,horizontal1,horizontal2)):
+            return True
+
     def observe(self):
-        # return all asteroids within 100units of player
-        near = collections.deque(maxlen=NEARASTEROIDS)
+        angle = 0.0
+        radius = 200
+        radar = [0.0] * 8
+
+        #sort so that nearest is at the front and will be first added to radar
         self.asteroids = sorted(self.asteroids, key=lambda a: self.distance(a.x, a.y))
         self.alienBullets = sorted(self.alienBullets, key=lambda a: self.distance(a.x, a.y))
-        for i in range(NEARASTEROIDS):
-            # fill the near list with nearest asteroids
-            if (len(self.asteroids) > i):
-                near.append(
-                    [self.asteroids[i].x, self.asteroids[i].y, self.asteroids[i].size, self.asteroids[i].xVelocity,
-                     self.asteroids[i].yVelocity])
-            else:
-                # else if not enough exist fill with empty
-                near.append([-1, -1, -1, 0, 0])
 
+        # loop through N,NE,E,SE,S,SW,W,NW directions and check for asteroids if the player can "see" them
+        for i in range(8):
+            # find the end point of the player's vision
+            x2 = self.player.x + radius* math.sin(angle)
+            y2 = self.player.y + radius* math.cos(angle)
+            angle+=45
+            #check all asteroids
+            for a in self.asteroids:
+                if self.checkLineIntersection(self.player.x,self.player.y, x2,y2,a):
+                    #set the value to the distance
+                    radar[i]=self.distance(a.x,a.y)
+                    #print("radar " + str(i) + " angle " + str(angle) + " distance " +str(radar[i]))
+                    break
+
+        # observation object to be returned including information about the player
         o = [self.player.x, self.player.y, self.player.velocityX, self.player.velocityY, self.player.angle]
+        #add radar info to observation
+        o = o+list(radar)
+        #add information about nearest bullet
         if len(self.alienBullets) == 0:
-            o = o + [-1, -1, 0, 0]
+            o = o + [0, 0]
         else:
             ab = self.alienBullets[0]
-            o = o + [ab.x, ab.y, ab.xVelocity, ab.yVelocity]
-        for ast in near:
-            o = o + list(ast)
-
+            o = o + [ab.x, ab.y]
         return o
 
     def action(self, action):

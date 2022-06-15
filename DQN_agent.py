@@ -21,5 +21,5 @@ class DQN_agent():
 
         for i in range(1, episodes):
             self.model.learn(total_timesteps=timesteps, reset_num_timesteps=False, tb_log_name="DQN")
-            self.model.save(f"logs/{self.name}/{timesteps * i}")
+            self.model.save(f"{self.models_dir}/{self.name}/{timesteps * i}")
 
