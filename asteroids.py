@@ -84,7 +84,6 @@ class Player(GameObject):
         self.velocityX = 0
         self.velocityY = 0
         self.waitTime = 0
-        print(self.waitTime)
         super().__init__()
 
     def shoot(self):
@@ -180,6 +179,9 @@ class NonPlayerObject(GameObject):
 
     def draw(self, win):
         win.blit(self.img, (self.x, self.y))
+
+    def drawAt(self, win,x,y):
+        win.blit(self.img, (x, y))
 
 
 class Alien(NonPlayerObject):
@@ -347,7 +349,7 @@ class AsteroidsGame():
                 ab.draw(win)
 
         for a in self.asteroids:
-            a.draw(win)
+            a.drawAt(win,a.x- a.size / 2, a.y - a.size / 2)
         win.blit(livesText, (25, 25))
         win.blit(scoreText, (screenW - 100, 25))
         pygame.display.update()
@@ -462,16 +464,23 @@ class AsteroidsGame():
 
     def checkLineIntersection(self, x1,y1,x2,y2, asteroid):
         # check for intersection between line and line at asteroid origin
-        vertical1 = Point(asteroid.x, asteroid.y -asteroid.size/2)
-        vertical2 = Point(asteroid.x, asteroid.y +asteroid.size/2)
-        horizontal1 = Point(asteroid.x- asteroid.size/2, asteroid.y)
-        horizontal2 = Point(asteroid.x+ asteroid.size/2, asteroid.y)
+        frontVertical1 = Point(asteroid.x + asteroid.size / 2, asteroid.y - asteroid.size / 2)
+        frontVertical2 = Point(asteroid.x + asteroid.size / 2, asteroid.y + asteroid.size / 2)
+        bottomHorizontal1 = Point(asteroid.x - asteroid.size / 2, asteroid.y - asteroid.size / 2)
+        bottomHorizontal2 = Point(asteroid.x + asteroid.size / 2, asteroid.y - asteroid.size / 2)
+        backVertical1 = Point(asteroid.x - asteroid.size / 2, asteroid.y - asteroid.size / 2)
+        backVertical2 = Point(asteroid.x - asteroid.size / 2, asteroid.y + asteroid.size / 2)
+        topHorizontal1 = Point(asteroid.x - asteroid.size / 2, asteroid.y + asteroid.size / 2)
+        topHorizontal2 = Point(asteroid.x + asteroid.size / 2, asteroid.y + asteroid.size / 2)
+
         p1 = Point(x1,y1)
         p2 = Point(x2,y2)
 
 
         # check for intersection between line and asteroid axis
-        if(intersect(p1,p2,vertical1,vertical2) or intersect(p1,p2,horizontal1,horizontal2)):
+        if (intersect(p1, p2, frontVertical1, frontVertical2) or intersect(p1, p2, backVertical1, backVertical2)
+                or intersect(p1, p2, bottomHorizontal1, bottomHorizontal2) or intersect(p1, p2, topHorizontal1,
+                                                                                        topHorizontal2)):
             return True
 
     def observe(self):
@@ -488,12 +497,12 @@ class AsteroidsGame():
             # find the end point of the player's vision
             x2 = self.player.x + radius* math.sin(angle)
             y2 = self.player.y + radius* math.cos(angle)
-            angle+=45
+            angle += math.radians(45)
             #check all asteroids
             for a in self.asteroids:
                 if self.checkLineIntersection(self.player.x,self.player.y, x2,y2,a):
                     #set the value to the distance
-                    radar[i]=self.distance(a.x,a.y)
+                    radar[i]=self.distance(a.x,a.y) - a.size/2
                     #print("radar " + str(i) + " angle " + str(angle) + " distance " +str(radar[i]))
                     break
 
