@@ -8,6 +8,8 @@ import numpy as np
 
 class asteroidEnv(gym.Env):
 
+    k=4
+
     def __init__(self):
         self.asteroidsGame = asteroidsEasy.AsteroidsGame()
         self.action_space = spaces.Discrete(12)
@@ -20,7 +22,7 @@ class asteroidEnv(gym.Env):
         return obs
 
     def step(self, action):
-        self.asteroidsGame.action(action)
+        self.asteroidsGame.action(action,k=self.k)
         obs = self.asteroidsGame.observe()
         reward = self.asteroidsGame.evaluate()
         done = self.asteroidsGame.is_done()

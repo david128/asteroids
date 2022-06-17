@@ -6,8 +6,9 @@ class PPO_agent():
 
     def __init__(self,env,name):
         self.name = name
-        self.models_dir = f"models/{self.name}/{self.name}-{int(time.time())}"
-        self.log_dir = f"logs/{self.name}/{self.name}-{int(time.time())}"
+        self.modelName ="PPO"
+        self.models_dir = f"models/{self.modelName}/{self.name}-{int(time.time())}"
+        self.log_dir = f"logs/{self.modelName}/{self.name}-{int(time.time())}"
 
         if not os.path.exists(self.models_dir):
             os.makedirs(self.models_dir)

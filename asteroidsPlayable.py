@@ -118,10 +118,10 @@ class Player(GameObject):
         self.head = (self.x + self.cosine * self.w / 2, self.y - self.sine * self.h / 2)
 
     def turnLeft(self):
-        self.angle += 5
+        self.angle += 2
 
     def turnRight(self):
-        self.angle -= 5
+        self.angle -= 2
 
     def move(self):
         self.x += self.velocityX
@@ -315,7 +315,7 @@ class AsteroidsGame():
 
     def __init__(self):
         self.alienRespawnTime = 1000
-        self.asteroidSpawnTime = 150
+        self.asteroidSpawnTime = 300
         self.player = Player()
         self.alien = Alien(0, 0, 0, 0)
 
@@ -334,13 +334,18 @@ class AsteroidsGame():
     debugLines=[]
     radarLines=[]
     shapeLines =[]
+    toatalAsteroids =10
+    astCount = toatalAsteroids
+
 
 
     def resetGame(self):
         score = 0
         lives = 3
         count = 0
-        self.alienRespawnTime = 200
+        spawnCount = 10
+        toatalAsteroids = spawnCount
+        self.alienRespawnTime = 500
         self.player.reset()
         self.asteroids.clear()
         self.bullets.clear()
@@ -389,7 +394,7 @@ class AsteroidsGame():
         self.radarLines.clear()
         self.shapeLines.clear()
         angle = self.player.angle
-        radius = 200
+        radius = 300
         radar = [0.0] * 8
 
         #sort so that nearest is at the front and will be first added to radar
@@ -439,10 +444,22 @@ class AsteroidsGame():
             inputs = pygame.key.get_pressed()
 
             if not self.pause:
-                if self.count % self.asteroidSpawnTime == 0:
-                    self.asteroids.append(
-                        random.choice([SmallAsteroid(0, 0, 0, 0), MediumAsteroid(0, 0, 0, 0, self.newAsteroids),
-                                       LargeAsteroid(0, 0, 0, 0, self.newAsteroids)]))
+
+                # if there are more asteroids to spawn
+                if self.astCount > 0:
+                    # if it has been a certain amount of time since last spawn, spawn another
+                    if self.count % self.asteroidSpawnTime == 0 :
+                        print(self.astCount)
+                        self.astCount -=1
+                        self.asteroids.append(
+                            random.choice([SmallAsteroid(0, 0, 0, 0), MediumAsteroid(0, 0, 0, 0, self.newAsteroids),
+                                           LargeAsteroid(0, 0, 0, 0, self.newAsteroids)]))
+                else:
+                    # if there are no asteroids on screen then move to next "level""
+                    if len(self.asteroids) ==0:
+                        self.toatalAsteroids += int(float(self.toatalAsteroids) * 0.1)
+                        self.astCount = self.toatalAsteroids
+                        print(self.toatalAsteroids)
 
                 if not self.alien.dead:
                     self.alien.move()
