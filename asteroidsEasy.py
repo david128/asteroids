@@ -81,10 +81,43 @@ class Player(GameObject):
         self.cosine = math.cos(math.radians(self.angle + 90))
         self.sine = math.sin(math.radians(self.angle + 90))
         self.head = (self.x + self.cosine * self.w / 2, self.y - self.sine * self.h / 2)
+        self.br = (self.x + self.cosine * self.w, self.y + self.sine * self.h / 2)
+        self.bl = (self.x - self.cosine * self.w, self.y + self.sine * self.h / 2)
         self.velocityX = 0
         self.velocityY = 0
         self.waitTime = 0
         super().__init__()
+
+    def findDistanceToPoint(self, x, y):
+        # the 3 lines of the triangle
+        bottom = (self.bl, self.br)
+        left = (self.bl, self.head)
+        right = (self.br, self.head)
+        bd = self.findDistanceToPointFromLineSegment(x, y, bottom[0], bottom[1])
+        rd = self.findDistanceToPointFromLineSegment(x, y, right[0], right[1])
+        ld = self.findDistanceToPointFromLineSegment(x, y, left[0], left[1])
+        return min(bd, ld, rd)
+
+
+    def sqr(self, x):
+        return x * x
+
+    def dist2(self, v, w):
+        return (self.sqr(v[0] - w[0]) + self.sqr(v[1] - w[1]))
+
+    def findDistanceToPointFromLineSegment(self, x, y, line1, line2):
+        len2 = self.dist2(line1, line2)
+        if len2 == 0:
+            return self.dist2((x, y), line1)
+        t = ((x - line1[0]) * (line2[0] - line1[0]) +
+             (y - line1[1]) * (line2[1] - line1[1])) / len2
+        t = max(0, min(1, t))
+
+        px = line1[0] + t * (line2[0] - line1[0])
+        py = line1[1] + t * (line2[1] - line1[1])
+
+        d2 = self.dist2((x, y), (px, py))
+        return math.sqrt(d2)
 
     def shoot(self):
         # makes the player wait 25 frames before firing again
@@ -103,12 +136,18 @@ class Player(GameObject):
         self.cosine = math.cos(math.radians(self.angle + 90))
         self.sine = math.sin(math.radians(self.angle + 90))
         self.head = (self.x + self.cosine * self.w / 2, self.y - self.sine * self.h / 2)
+        rx = self.x+self.w/2 * -self.cosine - self.h/2*self.sine
+        ry = self.y+self.w/2 * self.sine + self.h/2* -self.cosine
+        self.bl = (rx,ry)
+        rx = self.x+self.w/2 * -self.cosine + self.h/2*self.sine
+        ry = self.y+self.w/2 * self.sine - self.h/2* -self.cosine
+        self.br = (rx,ry)
 
     def turnLeft(self):
-        self.angle += 2
+        self.angle += 2.0
 
     def turnRight(self):
-        self.angle -= 2
+        self.angle -= 2.0
 
     def move(self):
         self.x += self.velocityX
@@ -239,7 +278,12 @@ class AlienBullet(GameObject):
 
 class Asteroid(NonPlayerObject):
     def __init__(self, x, y, xV, yV):
+        self.rect = self.img.get_rect()
         super().__init__(x, y, xV, yV)
+
+    def move(self):
+        super().move()
+        self.rect.center = (self.x, self.y)
 
     def incrementScore(self, amount):
         self.score += amount
@@ -314,7 +358,7 @@ class AsteroidsGame():
     count = 0
     lives = 3
     livesFlag = False
-    toatalAsteroids =10
+    toatalAsteroids =5
     astCount = toatalAsteroids
     debug = False
     debugLines=[]
@@ -330,7 +374,7 @@ class AsteroidsGame():
         self.asteroids.clear()
         self.bullets.clear()
         self.alienBullets.clear()
-        self.spawnCount = 10
+        self.spawnCount = 5
         self.toatalAsteroids = self.spawnCount
 
 
@@ -373,6 +417,21 @@ class AsteroidsGame():
             if (by >= ay and by <= ay + asize) or (by + bsize >= ay and by + bsize <= ay + asize):
                 return True
 
+    def colCheckPlayerAsteroid(self, a,pr):
+        #general col detection
+        if pr.colliderect(a.rect):
+            #pixel collision
+            pm = pygame.mask.from_surface(self.player.rotatedSurface.convert_alpha())
+            am = pygame.mask.from_surface(a.img.convert_alpha())
+            self.outline =pm.outline()
+            self.outline2 =am.outline()
+
+            offset = (
+            a.x - a.size / 2 - self.player.rotatedRectangle.x, a.y - a.size / 2 - self.player.rotatedRectangle.y)
+            if pm.overlap(am, offset):
+                return True
+        return False
+
     def update(self):
         # clock tick removed to allow for faster playing
         # clock.tick(60)
@@ -414,7 +473,10 @@ class AsteroidsGame():
                 a.move()
                 a.checkPos()
                 # col check between asteroid and player
-                if self.collisionCheck(a.x, a.y, a.size, self.player.x, self.player.y, self.player.img.get_width()):
+                if self.colCheckPlayerAsteroid(a,self.player.rotatedRectangle):
+                    if self.debug:
+                        print("Collision")
+                        print(str(self.dr))
                     self.lives -= 1
                     self.livesFlag = True
                     self.asteroids.pop(self.asteroids.index(a))
@@ -508,26 +570,28 @@ class AsteroidsGame():
         self.shapeLines.clear()
 
         angle = self.player.angle
-        radius = 300
-        radar = [0.0] * 8
+        lines =16
+        radius = 300.0
+        radar = [0.0] * lines
+        self.dr = radar
 
         #sort so that nearest is at the front and will be first added to radar
         self.asteroids = sorted(self.asteroids, key=lambda a: self.distance(a.x, a.y))
         self.alienBullets = sorted(self.alienBullets, key=lambda a: self.distance(a.x, a.y))
 
         # loop through N,NE,E,SE,S,SW,W,NW directions and check for asteroids if the player can "see" them
-        for i in range(8):
+        for i in range(lines):
             # find the end point of the player's vision
-            x2 = self.player.x + radius* math.sin(angle)
-            y2 = self.player.y + radius* math.cos(angle)
-            angle += math.radians(45)
+            x2 = self.player.x + radius* math.sin(math.radians(angle))
+            y2 = self.player.y + radius* math.cos(math.radians(angle))
+            angle += 360.0/lines
             # check all asteroids
             for a in self.asteroids:
                 if self.debug:
                     self.radarLines.append(Point(x2, y2))
                 if self.checkLineIntersection(self.player.x,self.player.y, x2,y2,a):
                     #set the value to the distance
-                    radar[i]=self.distance(a.x,a.y) - a.size/2
+                    radar[i]=self.player.findDistanceToPoint(a.x,a.y) - a.size/2.0
                     if self.debug:
                         self.debugLines.append(Point(x2,y2))
                     break
@@ -537,14 +601,16 @@ class AsteroidsGame():
         #add radar info to observation
         o = o+list(radar)
         #add information about nearest bullet
+        ''''
         if len(self.alienBullets) == 0:
             o = o + [0, 0]
         else:
             ab = self.alienBullets[0]
             o = o + [ab.x, ab.y]
+        '''
         return o
 
-    def action(self, action,k):
+    def action(self, action,k,renderMode):
 
 
         self.delta = self.score
@@ -591,6 +657,10 @@ class AsteroidsGame():
                 # do nothing
                 pass
             self.update()
+            if renderMode:
+                self.redrawWindow()
+            else:
+                print("Frame:"+ str(self.count))
         # get change in score
         self.delta = self.score - self.delta
 
