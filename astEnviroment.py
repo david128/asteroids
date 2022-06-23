@@ -22,7 +22,7 @@ class asteroidEnv(gym.Env):
         return obs
 
     def step(self, action):
-        self.asteroidsGame.action(action,k=self.k,renderMode=False)
+        self.asteroidsGame.action(action,k=self.k,renderMode=True)
         obs = self.asteroidsGame.observe()
         reward = self.asteroidsGame.evaluate()
         done = self.asteroidsGame.is_done()

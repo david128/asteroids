@@ -347,6 +347,9 @@ class AsteroidsGame():
         self.player = Player()
         self.alien = Alien(0, 0, 0, 0)
         self.alien.die(1)
+        self.spawnCount = 5
+        self.totalAsteroids = self.spawnCount
+
 
     run = True
     gameover = False
@@ -358,8 +361,8 @@ class AsteroidsGame():
     count = 0
     lives = 3
     livesFlag = False
-    toatalAsteroids =5
-    astCount = toatalAsteroids
+    totalAsteroids =5
+    astCount = totalAsteroids
     debug = False
     debugLines=[]
     radarLines=[]
@@ -375,7 +378,7 @@ class AsteroidsGame():
         self.bullets.clear()
         self.alienBullets.clear()
         self.spawnCount = 5
-        self.toatalAsteroids = self.spawnCount
+        self.totalAsteroids = self.spawnCount
 
 
     def redrawWindow(self):
@@ -449,8 +452,9 @@ class AsteroidsGame():
             else:
                 # if there are no asteroids on screen then move to next "level""
                 if len(self.asteroids) == 0:
-                    self.toatalAsteroids += int(float(self.toatalAsteroids) * 0.1)
-                    self.astCount = self.toatalAsteroids
+                    incr = max(1, int(float(self.totalAsteroids) * 0.1))
+                    self.totalAsteroids+=incr
+                    self.astCount = self.totalAsteroids
 
             if not self.alien.dead:
                 self.alien.move()
@@ -474,9 +478,6 @@ class AsteroidsGame():
                 a.checkPos()
                 # col check between asteroid and player
                 if self.colCheckPlayerAsteroid(a,self.player.rotatedRectangle):
-                    if self.debug:
-                        print("Collision")
-                        print(str(self.dr))
                     self.lives -= 1
                     self.livesFlag = True
                     self.asteroids.pop(self.asteroids.index(a))
@@ -669,6 +670,8 @@ class AsteroidsGame():
         if self.livesFlag:
             reward = reward - 10000
             self.livesFlag = False  # reset flag
+        else:
+            reward = reward+1
 
         return reward
 

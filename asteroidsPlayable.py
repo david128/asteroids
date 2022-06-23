@@ -400,8 +400,8 @@ class AsteroidsGame():
     debugLines=[]
     radarLines=[]
     shapeLines =[]
-    toatalAsteroids =10
-    astCount = toatalAsteroids
+    totalAsteroids =3
+    astCount = totalAsteroids
 
 
 
@@ -409,7 +409,7 @@ class AsteroidsGame():
         score = 0
         lives = 3
         count = 0
-        spawnCount = 10
+        spawnCount = 3
         toatalAsteroids = spawnCount
         self.alienRespawnTime = 500
         self.player.reset()
@@ -558,9 +558,10 @@ class AsteroidsGame():
                 else:
                     # if there are no asteroids on screen then move to next "level""
                     if len(self.asteroids) ==0:
-                        self.toatalAsteroids += int(float(self.toatalAsteroids) * 0.1)
-                        self.astCount = self.toatalAsteroids
-                        print(self.toatalAsteroids)
+                        incr = max(1, int(float(self.totalAsteroids) * 0.1))
+                        self.totalAsteroids += incr
+                        self.astCount = self.totalAsteroids
+                        print(self.totalAsteroids)
 
                 if not self.alien.dead:
                     self.alien.move()

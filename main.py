@@ -12,11 +12,11 @@ import asteroidsPlayable
 env = astEnviroment.asteroidEnv()
 env.reset()
 obs = env.reset()
-TIMESTEPS = 1000
-NUMEPISODES = 1000
+TIMESTEPS = 25000
+NUMEPISODES = 100
 # not DDPG not SAC not TD3
 
-agent = PPO_agent.PPO_agent(env,"PPO-Easy")
+agent = PPO_agent.PPO_agent(env,"PPO-1forNotDying")
 agent.train(TIMESTEPS, NUMEPISODES)
 
 
