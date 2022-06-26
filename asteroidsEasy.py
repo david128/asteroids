@@ -86,6 +86,7 @@ class Player(GameObject):
         self.velocityX = 0
         self.velocityY = 0
         self.waitTime = 0
+        self.gridPos = []
         super().__init__()
 
     def findDistanceToPoint(self, x, y):
@@ -144,10 +145,14 @@ class Player(GameObject):
         self.br = (rx,ry)
 
     def turnLeft(self):
-        self.angle += 2.0
+        self.angle += 3.5
+        if self.angle >= 360:
+            self.angle -= 360
 
     def turnRight(self):
-        self.angle -= 2.0
+        self.angle -= 3.5
+        if self.angle <= 0:
+            self.angle += 360
 
     def move(self):
         self.x += self.velocityX
@@ -287,6 +292,7 @@ class Asteroid(NonPlayerObject):
 
     def incrementScore(self, amount):
         self.score += amount
+        print("Reward +"  + str(amount))
 
     def hit(self):
         return self.amount
@@ -349,6 +355,16 @@ class AsteroidsGame():
         self.alien.die(1)
         self.spawnCount = 5
         self.totalAsteroids = self.spawnCount
+        self.gridH = 16
+        self.gridL = 16
+        self.gridDim = self.gridL * self.gridH
+        self.gridSize = screenH / self.gridH
+        self.gridH = 16
+        self.gridL = 16
+        self.gridDim = self.gridL * self.gridH
+        self.gridSize = screenH / self.gridH
+        self.grid = [0]*self.gridDim
+        self.resetGame()
 
 
     run = True
@@ -364,9 +380,11 @@ class AsteroidsGame():
     totalAsteroids =5
     astCount = totalAsteroids
     debug = False
+    astFlag = False
     debugLines=[]
     radarLines=[]
     shapeLines =[]
+
 
     def resetGame(self):
         score = 0
@@ -412,6 +430,24 @@ class AsteroidsGame():
                 pygame.draw.line(win, (255, 0, 0), (self.player.x, self.player.y), (d.x, d.y))
             for d in self.shapeLines:
                 pygame.draw.line(win, (255, 100, 0), (d[0].x, d[0].y), (d[1].x, d[1].y))
+
+        if self.debug:
+            gx=0
+            gy=0
+            dText =[]
+            for i in range(16):
+
+                for j in range(16):
+                    gP = i + j*16
+                    dText.append((str(self.grid[gP]), (gy,gx)))
+                    gy +=50
+                gy = 0
+                gx+=50
+
+            for t in dText:
+                text = font.render(t[0], 1, (200, 255, 200))
+                win.blit(text, (t[1][0], t[1][1]))
+
 
         pygame.display.update()
 
@@ -566,6 +602,10 @@ class AsteroidsGame():
 
     def observe(self):
 
+        if self.debug:
+            self.getGridObservation()
+
+
         self.debugLines.clear()
         self.radarLines.clear()
         self.shapeLines.clear()
@@ -611,8 +651,89 @@ class AsteroidsGame():
         '''
         return o
 
-    def action(self, action,k,renderMode):
+    def getGridObservation(self):
+        grid = [0] * self.gridDim
+        for a in self.asteroids:
+            #check if on grid
+            ag = []
+            c =  self.gridPosFromXY(a.x,a.y)
+            ag.append(self.gridPosFromXY(a.x+a.size/2,a.y+a.size/2))
+            ag.append(self.gridPosFromXY(a.x+a.size/2,a.y-a.size/2))
+            ag.append( self.gridPosFromXY(a.x-a.size/2,a.y-a.size/2))
+            ag.append(self.gridPosFromXY(a.x-a.size/2,a.y+a.size/2))
+            if a.size >50:
+                ag.append(self.gridPosFromXY(a.x+a.size/2,a.y))
+                ag.append(self.gridPosFromXY(a.x-a.size/2,a.y))
+                ag.append( self.gridPosFromXY(a.x,a.y-a.size/2))
+                ag.append(self.gridPosFromXY(a.x,a.y+a.size/2))
 
+
+            for ap in ag:
+                if ap != -1:
+                    grid[ap] = 0.5
+            if c != -1:
+                grid[c] = 1
+
+
+        #add player to grid
+        points = []
+        points.append(self.gridPosFromXY(self.player.x,self.player.y))
+        points.append(self.gridPosFromXY(self.player.head[0],self.player.head[1]))
+        points.append(self.gridPosFromXY(self.player.br[0],self.player.br[1]))
+        points.append(self.gridPosFromXY(self.player.bl[0],self.player.bl[1]))
+
+        added = []
+        self.player.gridPos.clear()
+        #add the player points to grid, not making duplicates
+        for p in points:
+            if p != -1:
+                duplicate = False
+                if len(added)>0:
+                    for ap in added:
+                        if p == ap:
+                            duplicate = True
+                if not duplicate:
+                    grid[p] +=2
+                    self.player.gridPos.append(p)
+                    added.append(p)
+
+
+
+        o = [self.player.x, self.player.y, self.player.velocityX, self.player.velocityY, self.player.angle/360]
+        o =o+list(grid)
+        self.grid = grid
+
+        for g in self.player.gridPos:
+            for s in self.findSquares(g):
+                if grid[s] != 0 and grid[s] != 2:
+                    # there is an asteroid here so give neg reward for being close
+                    self.astFlag = True
+        return o
+
+    def findSquares(self, pos):
+        #get pos n,ne,e,se,...
+        compass = [pos - 1, pos + 1, pos + 16, pos - 16, pos + 15, pos - 17, pos + 17, pos - 15]
+        #check that pos are valid
+        i=0
+        while i < len(compass):
+            c = compass[i]
+            if c<0 or c>255:
+                compass.remove(c)
+            else:
+                i+=1
+        return compass
+
+    def gridPosFromXY(self,x,y):
+        if x > 0 and x < 800 and y > 0 and y < 800:
+            gridX = int(x/self.gridSize)
+            gridY = int(y/self.gridSize)
+            return gridX* self.gridH + gridY
+        else:
+            return -1
+
+
+
+    def action(self, action,k,renderMode):
 
         self.delta = self.score
 
@@ -668,11 +789,15 @@ class AsteroidsGame():
     def evaluate(self):
         reward = self.delta
         if self.livesFlag:
-            reward = reward - 10000
+            reward = reward - 1000
+            print("Reward-1000")
             self.livesFlag = False  # reset flag
-        else:
-            reward = reward+1
-
+        if self.astFlag:
+            self.astFlag = False
+            print("Reward-1")
+            reward -= 1
+        if self.delta!=0:
+            print("Reward +" + str(self.delta))
         return reward
 
     def is_done(self):

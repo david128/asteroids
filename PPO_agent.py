@@ -20,6 +20,7 @@ class PPO_agent():
     def train(self,timesteps, episodes):
 
         for i in range(1, episodes):
+            print("Episode:" + str(i))
             self.model.learn(total_timesteps=timesteps, reset_num_timesteps=False, tb_log_name=self.name)
             self.model.save(f"{self.models_dir}/{self.name}/{timesteps * i}")
 
