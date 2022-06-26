@@ -173,10 +173,14 @@ class Player(GameObject):
         self.br = (rx,ry)
 
     def turnLeft(self):
-        self.angle += 2.0
+        self.angle += 3.5
+        if self.angle >= 360:
+            self.angle -=360
 
     def turnRight(self):
-        self.angle -= 2.0
+        self.angle -= 3.5
+        if self.angle <0:
+            self.angle+=360
 
     def move(self):
         self.x += self.velocityX
@@ -187,7 +191,7 @@ class Player(GameObject):
         v = math.fabs(self.velocityX) * math.fabs(self.velocityX) + math.fabs(self.velocityY) * math.fabs(
             self.velocityY)
         v = math.sqrt(v)
-        if (v < 5):
+        if (v < 3.5):
             self.velocityX += self.cosine * 0.1
             self.velocityY -= self.sine * 0.1
 
@@ -330,7 +334,7 @@ class SmallAsteroid(Asteroid):
     def __init__(self, x, y, xV, yV):
         self.size = 25
         self.img = ast25Img
-        self.speed = 1.5
+        self.speed = 1.0
         self.amount = 100
         super().__init__(x, y, xV, yV)
 
@@ -342,7 +346,7 @@ class MediumAsteroid(Asteroid):
     def __init__(self, x, y, xV, yV, newAsteroids):
         self.size = 50
         self.img = ast50Img
-        self.speed = 1.25
+        self.speed = 0.75
         self.newAsteroids = newAsteroids
         self.amount = 50
         super().__init__(x, y, xV, yV)
@@ -359,7 +363,7 @@ class LargeAsteroid(Asteroid):
     def __init__(self, x, y, xV, yV, newAsteroids):
         self.img = ast100Img
         self.size = self.img.get_width()
-        self.speed = 1.0
+        self.speed = 0.5
         self.newAsteroids = newAsteroids
         self.amount = 20
         super().__init__(x, y, xV, yV)
@@ -402,8 +406,7 @@ class AsteroidsGame():
     shapeLines =[]
     totalAsteroids =3
     astCount = totalAsteroids
-
-
+    topDist = 0
 
     def resetGame(self):
         score = 0
@@ -491,6 +494,7 @@ class AsteroidsGame():
         self.shapeLines.clear()
         angle = self.player.angle
         radius = 300.0
+
         radar = [0.0] * lines
 
 
@@ -511,12 +515,12 @@ class AsteroidsGame():
                 if self.checkLineIntersection(self.player.head[0],self.player.head[1], x2,y2,a):
                     #set the value to the distance
                     #set the value to the distance
-                    radar[i]=self.distance(a.x,a.y) - a.size/2 - self.player.img.get_width()/2
+                    radar[i]=(self.player.findDistanceToPoint(a.x,a.y) - a.size/2.0)/(radius+25)
+
                     if self.debug and not self.pause :
-
+                        self.topDist
                         newD = self.player.findDistanceToPoint(a.x,a.y) - a.size/2.0
-
-                        print("r " + str(i) + " th " + str(angle) + " od " +str(radar[i]) + " nd " + str(newD) )
+                        print(str(radar[i]) + " nd " + str(newD) )
                         self.debugLines.append(Point(x2,y2))
                     break
 
@@ -525,15 +529,11 @@ class AsteroidsGame():
 
 
         # observation object to be returned including information about the player
-        o = [self.player.x, self.player.y, self.player.velocityX, self.player.velocityY, self.player.angle]
+        o = [(self.player.x+50)/900, (self.player.y+50)/900, self.player.velocityX/3.6, self.player.velocityY/3.6, self.player.angle/360]
         #add radar info to observation
         o = o+list(radar)
-        #add information about nearest bullet
-        if len(self.alienBullets) == 0:
-            o = o + [0, 0]
-        else:
-            ab = self.alienBullets[0]
-            o = o + [ab.x, ab.y]
+        print(o)
+
         return o
 
     def update(self):
@@ -593,7 +593,7 @@ class AsteroidsGame():
                             print("Collision")
                         self.lives -= 1
                         self.livesFlag = True
-                        self.pause= True
+                        #self.pause= True
                         self.asteroids.pop(self.asteroids.index(a))
                         break
 

@@ -12,8 +12,8 @@ class asteroidEnv(gym.Env):
 
     def __init__(self):
         self.asteroidsGame = asteroidsEasy.AsteroidsGame()
-        self.action_space = spaces.Discrete(12)
-        self.observation_space = spaces.Box(low=-1000,high=1000,shape=(21,),dtype=np.float32)
+        self.action_space = spaces.Discrete(5)
+        self.observation_space = spaces.Box(low=-0,high=1,shape=(21,),dtype=np.float32)
 
     def reset(self):
         del self.asteroidsGame

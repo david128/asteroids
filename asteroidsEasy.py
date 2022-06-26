@@ -144,10 +144,14 @@ class Player(GameObject):
         self.br = (rx,ry)
 
     def turnLeft(self):
-        self.angle += 2.0
+        self.angle += 3.5
+        if self.angle >= 360:
+            self.angle -= 360
 
     def turnRight(self):
-        self.angle -= 2.0
+        self.angle -= 3.5
+        if self.angle < 0:
+            self.angle += 360
 
     def move(self):
         self.x += self.velocityX
@@ -158,7 +162,7 @@ class Player(GameObject):
         v = math.fabs(self.velocityX) * math.fabs(self.velocityX) + math.fabs(self.velocityY) * math.fabs(
             self.velocityY)
         v = math.sqrt(v)
-        if (v < 5):
+        if (v < 3.5):
             self.velocityX += self.cosine * 0.1
             self.velocityY -= self.sine * 0.1
 
@@ -226,7 +230,7 @@ class NonPlayerObject(GameObject):
 class Alien(NonPlayerObject):
     def __init__(self, x, y, xV, yV):
         self.img = shipImage
-        self.speed = 1.5
+        self.speed = 1.0
         self.randomSpawn()
         self.dead = True
         self.waitTime = 1000
@@ -296,7 +300,7 @@ class SmallAsteroid(Asteroid):
     def __init__(self, x, y, xV, yV):
         self.size = 25
         self.img = ast25Img
-        self.speed = 1.5
+        self.speed = 1.0
         self.amount = 100
         super().__init__(x, y, xV, yV)
 
@@ -308,7 +312,7 @@ class MediumAsteroid(Asteroid):
     def __init__(self, x, y, xV, yV, newAsteroids):
         self.size = 50
         self.img = ast50Img
-        self.speed = 1.25
+        self.speed = 0.75
         self.newAsteroids = newAsteroids
         self.amount = 50
         super().__init__(x, y, xV, yV)
@@ -325,7 +329,7 @@ class LargeAsteroid(Asteroid):
     def __init__(self, x, y, xV, yV, newAsteroids):
         self.img = ast100Img
         self.size = self.img.get_width()
-        self.speed = 1.0
+        self.speed = 0.5
         self.newAsteroids = newAsteroids
         self.amount = 20
         super().__init__(x, y, xV, yV)
@@ -432,6 +436,8 @@ class AsteroidsGame():
             offset = (
             a.x - a.size / 2 - self.player.rotatedRectangle.x, a.y - a.size / 2 - self.player.rotatedRectangle.y)
             if pm.overlap(am, offset):
+                if self.debug:
+                    print("Collision")
                 return True
         return False
 
@@ -572,13 +578,15 @@ class AsteroidsGame():
 
         angle = self.player.angle
         lines =16
-        radius = 300.0
+        radius = 400.0
         radar = [0.0] * lines
-        self.dr = radar
+
 
         #sort so that nearest is at the front and will be first added to radar
         self.asteroids = sorted(self.asteroids, key=lambda a: self.distance(a.x, a.y))
         self.alienBullets = sorted(self.alienBullets, key=lambda a: self.distance(a.x, a.y))
+
+
 
         # loop through N,NE,E,SE,S,SW,W,NW directions and check for asteroids if the player can "see" them
         for i in range(lines):
@@ -592,13 +600,14 @@ class AsteroidsGame():
                     self.radarLines.append(Point(x2, y2))
                 if self.checkLineIntersection(self.player.x,self.player.y, x2,y2,a):
                     #set the value to the distance
-                    radar[i]=self.player.findDistanceToPoint(a.x,a.y) - a.size/2.0
+                    radar[i]=(self.player.findDistanceToPoint(a.x,a.y) - a.size/2.0) / (radius+25)
                     if self.debug:
                         self.debugLines.append(Point(x2,y2))
                     break
 
+        self.radar = radar
         # observation object to be returned including information about the player
-        o = [self.player.x, self.player.y, self.player.velocityX, self.player.velocityY, self.player.angle]
+        o = [(self.player.x+50)/900, (self.player.y+50)/900, self.player.velocityX/3.6, self.player.velocityY/3.6, self.player.angle/360]
         #add radar info to observation
         o = o+list(radar)
         #add information about nearest bullet
@@ -612,51 +621,9 @@ class AsteroidsGame():
         return o
 
     def action(self, action,k,renderMode):
-
-
         self.delta = self.score
-
         for i in range(k):
-            if action == 0:
-                self.player.moveForward()
-            elif action == 1:
-                self.player.moveForward()
-                self.player.turnLeft()
-            elif action == 2:
-                self.player.moveForward()
-                self.player.turnRight()
-            elif action == 3:
-                self.player.turnLeft()
-            elif action == 4:
-                self.player.turnRight()
-            elif action == 5:
-                self.player.moveForward()
-                if self.player.shoot():
-                    self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
-            elif action == 6:
-                self.player.moveForward()
-                self.player.turnLeft()
-                if self.player.shoot():
-                    self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
-            elif action == 7:
-                self.player.moveForward()
-                self.player.turnRight()
-                if self.player.shoot():
-                    self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
-            elif action == 8:
-                self.player.turnLeft()
-                if self.player.shoot():
-                    self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
-            elif action == 9:
-                self.player.turnRight()
-                if self.player.shoot():
-                    self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
-            elif action == 10:
-                if self.player.shoot():
-                    self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
-            elif action == 11:
-                # do nothing
-                pass
+            self.simpleActions(action)
             self.update()
             if renderMode:
                 self.redrawWindow()
@@ -665,14 +632,67 @@ class AsteroidsGame():
         # get change in score
         self.delta = self.score - self.delta
 
+    def simpleActions(self,action):
+        if action == 0:
+            self.player.moveForward()
+        elif action == 1:
+            self.player.turnLeft()
+        elif action == 2:
+            self.player.turnRight()
+        elif action == 3:
+            if self.player.shoot():
+                self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
+        elif action == 4:
+            pass # do nothing
+
+    def multiActions(self, action):
+        if action == 0:
+            self.player.moveForward()
+        elif action == 1:
+            self.player.moveForward()
+            self.player.turnLeft()
+        elif action == 2:
+            self.player.moveForward()
+            self.player.turnRight()
+        elif action == 3:
+            self.player.turnLeft()
+        elif action == 4:
+            self.player.turnRight()
+        elif action == 5:
+            self.player.moveForward()
+            if self.player.shoot():
+                self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
+        elif action == 6:
+            self.player.moveForward()
+            self.player.turnLeft()
+            if self.player.shoot():
+                self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
+        elif action == 7:
+            self.player.moveForward()
+            self.player.turnRight()
+            if self.player.shoot():
+                self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
+        elif action == 8:
+            self.player.turnLeft()
+            if self.player.shoot():
+                self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
+        elif action == 9:
+            self.player.turnRight()
+            if self.player.shoot():
+                self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
+        elif action == 10:
+            if self.player.shoot():
+                self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
+        elif action == 11:
+            # do nothing
+            pass
+        pass
+
     def evaluate(self):
         reward = self.delta
         if self.livesFlag:
-            reward = reward - 10000
+            reward = reward - 1000
             self.livesFlag = False  # reset flag
-        else:
-            reward = reward+1
-
         return reward
 
     def is_done(self):
