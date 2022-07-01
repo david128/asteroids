@@ -23,6 +23,10 @@ pygame.display.set_caption("Asteroids")
 win = pygame.display.set_mode((screenW, screenH))
 clock = pygame.time.Clock()
 
+
+
+multiplier = 1.25
+
 #intersection
 def ccw(A, B, C):
     return (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x)
@@ -262,7 +266,7 @@ class SmallAsteroid(Asteroid):
     def __init__(self, x, y, xV, yV):
         self.size = 25
         self.img = ast25Img
-        self.speed = 1.25
+        self.speed = 1.25 * multiplier
         self.amount = 100
         super().__init__(x, y, xV, yV)
 
@@ -274,7 +278,7 @@ class MediumAsteroid(Asteroid):
     def __init__(self, x, y, xV, yV, newAsteroids):
         self.size = 50
         self.img = ast50Img
-        self.speed = 1.0
+        self.speed = 1.0 * multiplier
         self.newAsteroids = newAsteroids
         self.amount = 50
         super().__init__(x, y, xV, yV)
@@ -292,7 +296,7 @@ class LargeAsteroid(Asteroid):
     def __init__(self, x, y, xV, yV, newAsteroids):
         self.img = ast100Img
         self.size = self.img.get_width()
-        self.speed = 0.75
+        self.speed = 0.75 * multiplier
         self.newAsteroids = newAsteroids
         self.amount = 20
         super().__init__(x, y, xV, yV)
@@ -308,12 +312,20 @@ class LargeAsteroid(Asteroid):
 
 class AsteroidsGame():
 
-    def __init__(self):
+    def __init__(self, setting):
         self.delta = 0
-        self.asteroidSpawnTime = 300
+        self.asteroidSpawnTime = 0
+        self.spawnCount = 0
+        self.totalAsteroids = 0
         self.player = Player()
-        self.spawnCount = 8
-        self.totalAsteroids = self.spawnCount
+        if setting==0:
+            multiplier = 1.25
+            self.resetGame = self.resetGameNormal
+        elif setting==1:
+            multiplier= 1.0
+            self.resetGame = self.resetGameEasy
+        self.resetGame()
+
 
     #global vars
     run = True
@@ -331,7 +343,9 @@ class AsteroidsGame():
     radarLines=[]
     shapeLines =[]
 
-    def resetGame(self):
+
+
+    def resetGameEasy(self):
         #reset variables
         score = 0
         lives = 3
@@ -341,6 +355,20 @@ class AsteroidsGame():
         self.bullets.clear()
         self.spawnCount = 8
         self.totalAsteroids = self.spawnCount
+        self.asteroidSpawnTime = 300
+
+    def resetGameNormal(self):
+        #reset variables
+        score = 0
+        lives = 3
+        count = 0
+        self.player.reset()
+        self.asteroids.clear()
+        self.bullets.clear()
+        self.spawnCount = 16
+        self.totalAsteroids = self.spawnCount
+        self.asteroidSpawnTime = 200
+
 
     def redrawWindow(self):
         win.blit(bg, (0, 0))

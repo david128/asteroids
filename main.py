@@ -9,8 +9,10 @@ import os
 import time
 import asteroidsPlayable
 
-env = astEnviroment.astEnv()
+env = astEnviroment.AstEnv()
+cEnv = astEnviroment.CurriculumEnv()
 env.setK(4)
+cEnv.setK(4)
 env.reset()
 obs = env.reset()
 TIMESTEPS = 10000
@@ -18,8 +20,11 @@ NUMEPISODES = 100
 
 #asteroidsPlayable.play()
 
-agent = DQN_agent.DQN_agent(env,"DQN-norm-l")
-agent.curriculumTraining(TIMESTEPS, NUMEPISODES)
+agent = DQN_agent.DQN_agent(env,"De")
+agent.train(TIMESTEPS, NUMEPISODES)
+
+agent = DQN_agent.DQN_agent(cEnv,"DeleteMe")
+agent.train(TIMESTEPS, NUMEPISODES)
 
 agent = A2C_agent.A2C_agent(env,"a2c-norm-l")
 agent.train(TIMESTEPS, NUMEPISODES)

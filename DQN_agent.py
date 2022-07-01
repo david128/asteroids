@@ -24,11 +24,3 @@ class DQN_agent():
             self.model.learn(total_timesteps=timesteps, reset_num_timesteps=False, tb_log_name=self.name)
             self.model.save(f"{self.models_dir}/{self.name}/{timesteps * i}")
 
-    def curriculumTraining(self,timesteps, episodes):
-
-        for i in range(1, episodes):
-            print("Ep " + str(i))
-            self.model.env.makeEasy()
-            self.model.learn(total_timesteps=timesteps, reset_num_timesteps=False, tb_log_name=self.name)
-            #self.model.save(f"{self.models_dir}/{self.name}/{timesteps * i}")
-        self.model.load(f"{self.models_dir}/{self.name}/{timesteps * (episodes+1)/2}")
