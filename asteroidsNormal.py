@@ -262,7 +262,7 @@ class SmallAsteroid(Asteroid):
     def __init__(self, x, y, xV, yV):
         self.size = 25
         self.img = ast25Img
-        self.speed = 1.25
+        self.speed = 1.5
         self.amount = 100
         super().__init__(x, y, xV, yV)
 
@@ -274,7 +274,7 @@ class MediumAsteroid(Asteroid):
     def __init__(self, x, y, xV, yV, newAsteroids):
         self.size = 50
         self.img = ast50Img
-        self.speed = 1.0
+        self.speed = 1.25
         self.newAsteroids = newAsteroids
         self.amount = 50
         super().__init__(x, y, xV, yV)
@@ -292,7 +292,7 @@ class LargeAsteroid(Asteroid):
     def __init__(self, x, y, xV, yV, newAsteroids):
         self.img = ast100Img
         self.size = self.img.get_width()
-        self.speed = 0.75
+        self.speed = 0.8
         self.newAsteroids = newAsteroids
         self.amount = 20
         super().__init__(x, y, xV, yV)
@@ -310,9 +310,9 @@ class AsteroidsGame():
 
     def __init__(self):
         self.delta = 0
-        self.asteroidSpawnTime = 300
+        self.asteroidSpawnTime = 250
         self.player = Player()
-        self.spawnCount = 8
+        self.spawnCount = 16
         self.totalAsteroids = self.spawnCount
 
     #global vars
@@ -339,7 +339,7 @@ class AsteroidsGame():
         self.player.reset()
         self.asteroids.clear()
         self.bullets.clear()
-        self.spawnCount = 8
+        self.spawnCount = 16
         self.totalAsteroids = self.spawnCount
 
     def redrawWindow(self):
@@ -414,11 +414,11 @@ class AsteroidsGame():
             else:
                 # if there are no asteroids on screen then move to next "level""
                 if len(self.asteroids) == 0:
-                    incr = max(1, int(float(self.totalAsteroids) * 0.1))
+                    incr = max(1, int(float(self.totalAsteroids) * 0.2))
                     self.totalAsteroids+=incr
                     self.spawnCount = self.totalAsteroids
-                    if self.asteroidSpawnTime > 100:
-                        self.asteroidSpawnTime -=2
+                    if self.asteroidSpawnTime >= 100:
+                        self.asteroidSpawnTime -= 2
 
             #update bullets,asteroids
             for b in self.bullets:
