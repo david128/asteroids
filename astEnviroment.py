@@ -12,7 +12,7 @@ class AstEnv(gym.Env):
     def __init__(self):
         self.k = 1
         self.asteroidsGame = asteroidsEasy.AsteroidsGame(0)
-        self.action_space = spaces.Discrete(5)
+        self.action_space = spaces.Discrete(6)
         self.observation_space = spaces.Box(low=-0, high=1, shape=(21,), dtype=np.float32)
 
     def reset(self):
@@ -43,7 +43,8 @@ class CurriculumEnv(gym.Env):
         self.k = 1
         self.s = 1
         self.tR = 0
-        self.action_space = spaces.Discrete(5)
+        self.asteroidsGame = asteroidsEasy.AsteroidsGame(1)
+        self.action_space = spaces.Discrete(6)
         self.observation_space = spaces.Box(low=-0, high=1, shape=(21,), dtype=np.float32)
 
     def reset(self):

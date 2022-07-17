@@ -14,12 +14,13 @@ cEnv = astEnviroment.CurriculumEnv()
 env.setK(4)
 cEnv.setK(4)
 env.reset()
+cEnv.reset()
 obs = env.reset()
 TIMESTEPS = 10000
 NUMEPISODES = 100
 
 #asteroidsPlayable.play()
-
+'''
 agent = DQN_agent.DQN_agent(env,"De")
 agent.train(TIMESTEPS, NUMEPISODES)
 
@@ -31,14 +32,14 @@ agent.train(TIMESTEPS, NUMEPISODES)
 
 agent = PPO_agent.PPO_agent(env,"PPO-norm-l")
 agent.train(TIMESTEPS, NUMEPISODES)
-
-model = PPO.load("models/A2C/a2c-norm-l-1656457860/a2c-norm-l/2475000.zip",env=env)
+'''
+model = PPO.load("models/import/300000.zip",env=cEnv)
 for i in range(NUMEPISODES):
-    obs = env.reset()
+    obs = cEnv.reset()
     done = False
     while not done:
         action, _states = model.predict(obs, deterministic=True)
-        obs, rewards, done, info = env.step(action)
+        obs, rewards, done, info = cEnv.step(action)
 
 
 

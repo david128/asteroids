@@ -561,7 +561,7 @@ class AsteroidsGame():
     def action(self, action,k,renderMode):
         self.delta = self.score
         for i in range(k):
-            self.simpleActions(action)
+            self.noShootActions(action)
             self.update()
             if renderMode:
                 self.redrawWindow()
@@ -569,6 +569,25 @@ class AsteroidsGame():
                 print("Frame:"+ str(self.count))
         # get change in score
         self.delta = self.score - self.delta
+
+
+
+    def noShootActions(self,action):
+        if action == 0:
+            self.player.moveForward()
+        elif action == 1:
+            self.player.moveForward()
+            self.player.turnLeft()
+        elif action == 2:
+            self.player.moveForward()
+            self.player.turnRight()
+        elif action == 3:
+            self.player.turnLeft()
+        elif action == 4:
+            self.player.turnRight()
+        elif action == 5:
+            # do nothing
+            pass
 
     #reduuced set of Actions
     def simpleActions(self,action):
