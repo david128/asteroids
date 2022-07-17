@@ -16,11 +16,13 @@ avoidEnv = astEnviroment.AvoidEnv()
 env.setK(4)
 cEnv.setK(4)
 env.reset()
+cEnv.reset()
 obs = env.reset()
 TIMESTEPS = 25000
 NUMEPISODES = 50
 
 #asteroidsPlayable.play()
+
 '''''
 agent = A2C_agent.A2C_agent(cEnv,"a2c-curriculum")
 agent.train(TIMESTEPS, NUMEPISODES)
@@ -60,7 +62,6 @@ agent.train(TIMESTEPS, NUMEPISODES)
 
 
 
-
 '''''
 env.setK(1)
 
@@ -76,15 +77,6 @@ agent.train(TIMESTEPS, NUMEPISODES)
 
 
 
-'''''
-model = PPO.load("models/A2C/a2c-curriculum-1656939346/a2c-curriculum/825000.zip",env=env)
-for i in range(NUMEPISODES):
-    obs = env.reset()
-    done = False
-    while not done:
-        action, _states = model.predict(obs, deterministic=True)
-        obs, rewards, done, info = env.step(action)
-        '''''
 
 
 
