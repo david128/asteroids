@@ -313,17 +313,27 @@ class LargeAsteroid(Asteroid):
 class AsteroidsGame():
 
     def __init__(self, setting):
+        self.astCount =1
         self.delta = 0
         self.asteroidSpawnTime = 0
         self.spawnCount = 0
         self.totalAsteroids = 0
         self.player = Player()
+        self.actionSet = self.multiActions
         if setting==0:
-            multiplier = 1.25
+            multiplier = 1.0
             self.resetGame = self.resetGameNormal
         elif setting==1:
             multiplier= 1.0
             self.resetGame = self.resetGameEasy
+        elif setting ==2:
+            multiplier = 1.0
+            self.resetGame = self.resetGameNormal
+            self.actionSet = self.noShootActions
+        elif setting ==3:
+            multiplier = 1.0
+            self.resetGame = self.resetGameNormal
+            self.actionSet = self.aimActions
         self.resetGame()
 
 
@@ -347,27 +357,33 @@ class AsteroidsGame():
 
     def resetGameEasy(self):
         #reset variables
-        score = 0
-        lives = 3
-        count = 0
+        print("ast" + str(self.astCount))
+        self.score = 0
+        self.lives = 3
+        self.count = 0
+        self.gameover=False
+        self.player.reset()
+        self.asteroids.clear()
+        self.bullets.clear()
+        self.spawnCount = self.astCount
+        self.totalAsteroids = self.spawnCount
+        self.asteroidSpawnTime = 300
+        if self.astCount >5:
+            self.resetGame= self.resetGameNormal
+
+
+    def resetGameNormal(self):
+        #reset variables
+        self.score = 0
+        self.lives = 3
+        self.count = 0
+        self.gameover= False
         self.player.reset()
         self.asteroids.clear()
         self.bullets.clear()
         self.spawnCount = 8
         self.totalAsteroids = self.spawnCount
         self.asteroidSpawnTime = 300
-
-    def resetGameNormal(self):
-        #reset variables
-        score = 0
-        lives = 3
-        count = 0
-        self.player.reset()
-        self.asteroids.clear()
-        self.bullets.clear()
-        self.spawnCount = 16
-        self.totalAsteroids = self.spawnCount
-        self.asteroidSpawnTime = 200
 
 
     def redrawWindow(self):
@@ -445,6 +461,9 @@ class AsteroidsGame():
                     incr = max(1, int(float(self.totalAsteroids) * 0.1))
                     self.totalAsteroids+=incr
                     self.spawnCount = self.totalAsteroids
+                    #move to next level of curriculum if scored greater than equal 20 pts per asteroid
+                    if self.score >= self.astCount*100:
+                        self.astCount +=1
                     if self.asteroidSpawnTime > 100:
                         self.asteroidSpawnTime -=2
 
@@ -561,7 +580,7 @@ class AsteroidsGame():
     def action(self, action,k,renderMode):
         self.delta = self.score
         for i in range(k):
-            self.simpleActions(action)
+            self.actionSet(action)
             self.update()
             if renderMode:
                 self.redrawWindow()
@@ -583,6 +602,36 @@ class AsteroidsGame():
                 self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
         elif action == 4:
             pass # do nothing
+
+    def noShootActions(self,action):
+        if action == 0:
+            self.player.moveForward()
+        elif action == 1:
+            self.player.moveForward()
+            self.player.turnLeft()
+        elif action == 2:
+            self.player.moveForward()
+            self.player.turnRight()
+        elif action == 3:
+            self.player.turnLeft()
+        elif action == 4:
+            self.player.turnRight()
+        elif action == 5:
+            # do nothing
+            pass
+
+    #set of actions for aiming
+    def aimActions(self,action):
+        if action == 0:
+            self.player.turnLeft()
+        elif action == 1:
+            self.player.turnRight()
+        elif action == 2:
+            if self.player.shoot():
+                self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
+        elif action == 3:
+            # do nothing
+            pass
 
     #set of every action
     def multiActions(self, action):
@@ -626,7 +675,7 @@ class AsteroidsGame():
         elif action == 11:
             # do nothing
             pass
-        pass
+
 
     #evaluate based on score gained and if life is lost
     def evaluate(self):
@@ -634,12 +683,14 @@ class AsteroidsGame():
         if self.livesFlag:
             reward = reward - 1000
             self.livesFlag = False  # reset flag
+        else:
+            reward +=1
         return reward
 
     #check if is done
     def is_done(self):
         if self.lives <= 0:
-            gameover = True
+            self.gameover = True
             return True
         else:
             return False

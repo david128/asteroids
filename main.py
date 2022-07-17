@@ -11,34 +11,80 @@ import asteroidsPlayable
 
 env = astEnviroment.AstEnv()
 cEnv = astEnviroment.CurriculumEnv()
+aimEnv = astEnviroment.AimEnv()
+avoidEnv = astEnviroment.AvoidEnv()
 env.setK(4)
 cEnv.setK(4)
 env.reset()
 obs = env.reset()
-TIMESTEPS = 10000
-NUMEPISODES = 100
+TIMESTEPS = 25000
+NUMEPISODES = 50
 
 #asteroidsPlayable.play()
-
-agent = DQN_agent.DQN_agent(env,"De")
+'''''
+agent = A2C_agent.A2C_agent(cEnv,"a2c-curriculum")
 agent.train(TIMESTEPS, NUMEPISODES)
 
-agent = DQN_agent.DQN_agent(cEnv,"DeleteMe")
+agent = A2C_agent.A2C_agent(env,"a2c")
 agent.train(TIMESTEPS, NUMEPISODES)
 
-agent = A2C_agent.A2C_agent(env,"a2c-norm-l")
+agent = DQN_agent.DQN_agent(env,"DQN")
 agent.train(TIMESTEPS, NUMEPISODES)
 
-agent = PPO_agent.PPO_agent(env,"PPO-norm-l")
+agent = DQN_agent.DQN_agent(cEnv,"DQN-curriculum")
 agent.train(TIMESTEPS, NUMEPISODES)
 
-model = PPO.load("models/A2C/a2c-norm-l-1656457860/a2c-norm-l/2475000.zip",env=env)
+agent = PPO_agent.PPO_agent(cEnv,"PPO-curriculum")
+agent.train(TIMESTEPS, NUMEPISODES)
+
+agent = PPO_agent.PPO_agent(env,"PPO")
+agent.train(TIMESTEPS, NUMEPISODES)
+'''''
+agent = A2C_agent.A2C_agent(avoidEnv,"a2c-avoid")
+agent.train(TIMESTEPS, NUMEPISODES)
+
+agent = DQN_agent.DQN_agent(avoidEnv,"DQN-avoid")
+agent.train(TIMESTEPS, NUMEPISODES)
+
+agent = PPO_agent.PPO_agent(avoidEnv,"PPO-avoid")
+agent.train(TIMESTEPS, NUMEPISODES)
+
+agent = A2C_agent.A2C_agent(aimEnv,"a2c-aim")
+agent.train(TIMESTEPS, NUMEPISODES)
+
+agent = DQN_agent.DQN_agent(aimEnv,"DQN-aim")
+agent.train(TIMESTEPS, NUMEPISODES)
+
+agent = PPO_agent.PPO_agent(aimEnv,"PPO-aim")
+agent.train(TIMESTEPS, NUMEPISODES)
+
+
+
+
+'''''
+env.setK(1)
+
+agent = DQN_agent.DQN_agent(env,"DQN-no-fs")
+agent.train(TIMESTEPS, NUMEPISODES)
+
+agent = A2C_agent.A2C_agent(env,"a2c-no-fs")
+agent.train(TIMESTEPS, NUMEPISODES)
+
+agent = PPO_agent.PPO_agent(env,"PPO-no-fs")
+agent.train(TIMESTEPS, NUMEPISODES)
+'''''
+
+
+
+'''''
+model = PPO.load("models/A2C/a2c-curriculum-1656939346/a2c-curriculum/825000.zip",env=env)
 for i in range(NUMEPISODES):
     obs = env.reset()
     done = False
     while not done:
         action, _states = model.predict(obs, deterministic=True)
         obs, rewards, done, info = env.step(action)
+        '''''
 
 
 
