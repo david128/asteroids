@@ -434,12 +434,13 @@ class AsteroidsGame():
         win.blit(livesText, (25, 25))
         win.blit(scoreText, (screenW - 100, 25))
 
-        for d in self.radarLines:
-            pygame.draw.line(win, (255, 255, 0), (self.player.head[0],self.player.head[1]), (d.x, d.y))
-        for d in self.debugLines:
-            pygame.draw.line(win, (255, 0, 0), (self.player.head[0],self.player.head[1]), (d.x, d.y))
-        for d in self.shapeLines:
-            pygame.draw.line(win, (255, 100, 0), (d[0].x, d[0].y), (d[1].x, d[1].y))
+
+        for rl in self.radarLines:
+            pygame.draw.line(win, (255, 255, 0), (self.player.x,self.player.y), (rl.x, rl.y))
+        for dl in self.debugLines:
+            pygame.draw.line(win, (255, 0, 0), (self.player.head[0],self.player.head[1]), (dl.x, dl.y))
+        for sl in self.shapeLines:
+            pygame.draw.line(win, (255, 100, 0), (sl[0].x, sl[0].y), (sl[1].x, sl[1].y))
 
         if len(self.outline) >=2:
 
@@ -474,6 +475,7 @@ class AsteroidsGame():
             offset = (a.x - a.size/2 - self.player.rotatedRectangle.x,a.y - a.size/2 - self.player.rotatedRectangle.y)
             self.offsetDraw = offset
             if pm.overlap(am,offset):
+                print("COLLISION")
                 return True
         return False
 
@@ -484,7 +486,7 @@ class AsteroidsGame():
         self.radarLines.clear()
         self.shapeLines.clear()
         angle = self.player.angle
-        radius = 300.0
+        radius = 400.0
 
         radar = [0.0] * lines
 
@@ -497,12 +499,13 @@ class AsteroidsGame():
         # loop through N,NE,E,SE,S,SW,W,NW directions and check for asteroids if the player can "see" them
         for i in range(lines):
             # find the end point of the player's vision
-            x2 = self.player.head[0] + radius* math.sin(math.radians(angle))
-            y2 = self.player.head[1] + radius* math.cos(math.radians(angle))
+            x2 = self.player.x + radius* math.sin(math.radians(angle))
+            y2 = self.player.y + radius* math.cos(math.radians(angle))
             angle += 360.0/lines
+            self.radarLines.append(Point(x2, y2))
             # check all asteroids
             for a in self.asteroids:
-                self.radarLines.append(Point(x2, y2))
+
                 if self.checkLineIntersection(self.player.head[0],self.player.head[1], x2,y2,a):
                     #set the value to the distance
                     #set the value to the distance

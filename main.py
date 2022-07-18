@@ -42,7 +42,11 @@ agent.train(TIMESTEPS, NUMEPISODES)
 agent = PPO_agent.PPO_agent(env,"PPO")
 agent.train(TIMESTEPS, NUMEPISODES)
 '''''
+
 agent = A2C_agent.A2C_agent(avoidEnv,"a2c-avoid")
+agent.train(TIMESTEPS, NUMEPISODES)
+
+agent = A2C_agent.A2C_agent(aimEnv,"a2c-aim")
 agent.train(TIMESTEPS, NUMEPISODES)
 
 agent = DQN_agent.DQN_agent(avoidEnv,"DQN-avoid")
@@ -51,8 +55,6 @@ agent.train(TIMESTEPS, NUMEPISODES)
 agent = PPO_agent.PPO_agent(avoidEnv,"PPO-avoid")
 agent.train(TIMESTEPS, NUMEPISODES)
 
-agent = A2C_agent.A2C_agent(aimEnv,"a2c-aim")
-agent.train(TIMESTEPS, NUMEPISODES)
 
 agent = DQN_agent.DQN_agent(aimEnv,"DQN-aim")
 agent.train(TIMESTEPS, NUMEPISODES)

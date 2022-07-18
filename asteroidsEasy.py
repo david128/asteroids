@@ -152,10 +152,12 @@ class Player(GameObject):
         if self.angle >= 360:
             self.angle -= 360
 
+
     def turnRight(self):
         self.angle -= 3.5
         if self.angle < 0:
             self.angle += 360
+
 
     def move(self):
         self.x += self.velocityX
@@ -313,6 +315,7 @@ class LargeAsteroid(Asteroid):
 class AsteroidsGame():
 
     def __init__(self, setting):
+        self.chosenAction = 0
         self.astCount =1
         self.delta = 0
         self.asteroidSpawnTime = 0
@@ -357,7 +360,6 @@ class AsteroidsGame():
 
     def resetGameEasy(self):
         #reset variables
-        print("ast" + str(self.astCount))
         self.score = 0
         self.lives = 3
         self.count = 0
@@ -408,12 +410,21 @@ class AsteroidsGame():
 
         #if debug mode is on draw debug lines
         if self.debug:
+            i = 0
             for d in self.radarLines:
-                pygame.draw.line(win, (255, 255, 0), (self.player.x, self.player.y), (d.x, d.y))
+
+                if i ==8:
+                    pygame.draw.line(win, (1, 100, 100), (self.player.x, self.player.y), (d.x, d.y))
+                else:
+                    pass
+                    #pygame.draw.line(win, (255, 255, 0), (self.player.x, self.player.y), (d.x, d.y))
+                i+=1
             for d in self.debugLines:
-                pygame.draw.line(win, (255, 0, 0), (self.player.x, self.player.y), (d.x, d.y))
+                #pygame.draw.line(win, (255, 0, 0), (self.player.x, self.player.y), (d.x, d.y))
+                pass
             for d in self.shapeLines:
                 pygame.draw.line(win, (255, 100, 0), (d[0].x, d[0].y), (d[1].x, d[1].y))
+#
 
         pygame.display.update()
 
@@ -442,8 +453,8 @@ class AsteroidsGame():
         return False
 
     def update(self):
-        # clock tick removed to allow for faster playing
-        # clock.tick(60)
+        clock.tick()
+        #print(str(clock.get_fps()))
         self.count += 1
 
         if not self.gameover:
@@ -553,17 +564,16 @@ class AsteroidsGame():
 
         #sort the list so that nearest is at the front and will be first added to radar
         self.asteroids = sorted(self.asteroids, key=lambda a: self.distance(a.x, a.y))
-
         # loop through N,NE,E,SE,S,SW,W,NW directions and check for asteroids if the player can "see" them
         for i in range(lines):
             # find the end point of the player's vision
             x2 = self.player.x + radius* math.sin(math.radians(angle))
             y2 = self.player.y + radius* math.cos(math.radians(angle))
             angle += 360.0/lines  # next line
+            if self.debug:
+                self.radarLines.append(Point(x2, y2))  # add to debug to be drawn
             # check all asteroids for intersection
             for a in self.asteroids:
-                if self.debug:
-                    self.radarLines.append(Point(x2, y2))  # add to debug to be drawn
                 if self.checkLineIntersection(self.player.x,self.player.y, x2,y2,a):
                     #set the value to the distance
                     radar[i] = (self.player.findDistanceToPoint(a.x,a.y) - a.size/2.0) / (radius+25)
@@ -579,11 +589,13 @@ class AsteroidsGame():
 
     def action(self, action,k,renderMode):
         self.delta = self.score
+
         for i in range(k):
             self.actionSet(action)
             self.update()
             if renderMode:
-                self.redrawWindow()
+                if self.debug:
+                    self.redrawWindow()
             else:
                 print("Frame:"+ str(self.count))
         # get change in score
@@ -654,6 +666,7 @@ class AsteroidsGame():
 
     #set of every action
     def multiActions(self, action):
+        self.chosenAction = action
         if action == 0:
             self.player.moveForward()
         elif action == 1:
@@ -695,9 +708,17 @@ class AsteroidsGame():
             # do nothing
             pass
 
+    #rewards
+    #standard - reward score, neg for death
+    #avoid - reward for every frame, neg for death
+    #aim - standard reward
+    #irl - standard reward +
+    # avoid reward
+    # aimed shot reward
 
     #evaluate based on score gained and if life is lost
     def evaluate(self):
+        self.evaluateIRL()
         reward = self.delta
         if self.livesFlag:
             reward = reward - 1000
@@ -705,6 +726,25 @@ class AsteroidsGame():
         else:
             reward +=1
         return reward
+
+    def evaluateLives(self):
+        reward = self.delta
+        if self.livesFlag:
+            reward = reward - 1000
+            self.livesFlag = False  # reset flag
+        return reward
+
+    def evaluateIRL(self):
+        #if aiming and shooting
+        reward =0
+        if self.radar[8] > 0 and self.chosenAction >=5 and self.chosenAction<=10 :
+            reward+=2
+        if (self.radar[0] >0 or self.radar[15] >0 or self.radar[1] >0)  and (self.radar[7]  ==0 and self.radar[8] ==0 and self.radar==0) and (self.chosenAction <=2  or (self.chosenAction >=5 and self.chosenAction <=7)):
+            reward +=1
+
+        return reward
+
+
 
     #check if is done
     def is_done(self):
