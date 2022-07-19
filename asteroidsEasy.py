@@ -23,17 +23,18 @@ pygame.display.set_caption("Asteroids")
 win = pygame.display.set_mode((screenW, screenH))
 clock = pygame.time.Clock()
 
-
-
 multiplier = 1.25
 
-#intersection
+
+# intersection
 def ccw(A, B, C):
     return (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x)
+
 
 # Return true if line segments AB and CD intersect
 def intersect(A, B, C, D):
     return ccw(A, C, D) != ccw(B, C, D) and ccw(A, B, C) != ccw(A, B, D)
+
 
 # point with x and y coords
 class Point():
@@ -41,7 +42,8 @@ class Point():
         self.x = x
         self.y = y
 
-#base GameObject class
+
+# base GameObject class
 class GameObject(object):
     def __init__(self):
         self.x
@@ -55,7 +57,7 @@ class GameObject(object):
         if self.x < -50 or self.x > screenW + 50 or self.y < -50 or self.y > screenH + 50:
             return True
 
-    #used to reset the pos when goes off screen to other side of screen
+    # used to reset the pos when goes off screen to other side of screen
     def checkPos(self):
         if self.x < -50:
             self.x = screenW + 50
@@ -97,10 +99,10 @@ class Player(GameObject):
         bd = self.findDistanceToPointFromLineSegment(x, y, bottom[0], bottom[1])
         rd = self.findDistanceToPointFromLineSegment(x, y, right[0], right[1])
         ld = self.findDistanceToPointFromLineSegment(x, y, left[0], left[1])
-        #returns the min distance from lines of ship to point supplied
+        # returns the min distance from lines of ship to point supplied
         return min(bd, ld, rd)
 
-    #function that returns squared of value
+    # function that returns squared of value
     def sqr(self, x):
         return x * x
 
@@ -132,32 +134,30 @@ class Player(GameObject):
         win.blit(self.rotatedSurface, self.rotatedRectangle)
 
     def updateAngle(self):
-        #updates the angle and finds the rotated points of the ship
+        # updates the angle and finds the rotated points of the ship
         self.rotatedSurface = pygame.transform.rotate(self.img, self.angle)
         self.rotatedRectangle = self.rotatedSurface.get_rect()
         self.rotatedRectangle.center = (self.x, self.y)
         self.cosine = math.cos(math.radians(self.angle + 90))
         self.sine = math.sin(math.radians(self.angle + 90))
         self.head = (self.x + self.cosine * self.w / 2, self.y - self.sine * self.h / 2)
-        rx = self.x+self.w/2 * -self.cosine - self.h/2*self.sine
-        ry = self.y+self.w/2 * self.sine + self.h/2* -self.cosine
-        self.bl = (rx,ry)
-        rx = self.x+self.w/2 * -self.cosine + self.h/2*self.sine
-        ry = self.y+self.w/2 * self.sine - self.h/2* -self.cosine
-        self.br = (rx,ry)
+        rx = self.x + self.w / 2 * -self.cosine - self.h / 2 * self.sine
+        ry = self.y + self.w / 2 * self.sine + self.h / 2 * -self.cosine
+        self.bl = (rx, ry)
+        rx = self.x + self.w / 2 * -self.cosine + self.h / 2 * self.sine
+        ry = self.y + self.w / 2 * self.sine - self.h / 2 * -self.cosine
+        self.br = (rx, ry)
 
-    #left and right turns keep angle in 0-360 range
+    # left and right turns keep angle in 0-360 range
     def turnLeft(self):
         self.angle += 3.5
         if self.angle >= 360:
             self.angle -= 360
 
-
     def turnRight(self):
         self.angle -= 3.5
         if self.angle < 0:
             self.angle += 360
-
 
     def move(self):
         self.x += self.velocityX
@@ -165,7 +165,7 @@ class Player(GameObject):
         self.updateAngle()
 
     def moveForward(self):
-        #max v of 3.5
+        # max v of 3.5
         v = math.fabs(self.velocityX) * math.fabs(self.velocityX) + math.fabs(self.velocityY) * math.fabs(
             self.velocityY)
         v = math.sqrt(v)
@@ -196,7 +196,7 @@ class NonPlayerObject(GameObject):
         self.y = y
         self.xVelocity = xV
         self.yVelocity = yV
-        #if not provided x and y then spawn in random loc
+        # if not provided x and y then spawn in random loc
         if (x == 0 and y == 0):
             self.randomSpawn()
 
@@ -231,14 +231,14 @@ class NonPlayerObject(GameObject):
     def draw(self, win):
         win.blit(self.img, (self.x, self.y))
 
-    def drawAt(self, win,x,y):
+    def drawAt(self, win, x, y):
         win.blit(self.img, (x, y))
 
 
 class Bullet(GameObject):
 
     def __init__(self, ph, pc, ps):
-        self.x, self.y = ph # x and y initialised at player head
+        self.x, self.y = ph  # x and y initialised at player head
         self.cosine = pc
         self.sine = ps
         self.size = 3
@@ -250,7 +250,7 @@ class Bullet(GameObject):
         pygame.draw.rect(win, (255, 255, 255), [self.x, self.y, self.size, self.size])
 
 
-#asteroid base class
+# asteroid base class
 class Asteroid(NonPlayerObject):
     def __init__(self, x, y, xV, yV):
         self.rect = self.img.get_rect()
@@ -286,7 +286,7 @@ class MediumAsteroid(Asteroid):
         super().__init__(x, y, xV, yV)
 
     def hit(self):
-        #spawn 2 small asteroids
+        # spawn 2 small asteroids
         self.newAsteroids.append(SmallAsteroid(self.x, self.y, self.xVelocity, self.yVelocity))
         a = SmallAsteroid(self.x, self.y, 0, 0)
         a.randomVelocity(random.choice([-1, 1]), random.choice([-1, 1]))
@@ -304,7 +304,7 @@ class LargeAsteroid(Asteroid):
         super().__init__(x, y, xV, yV)
 
     def hit(self):
-        #spawn two medium asteroids
+        # spawn two medium asteroids
         self.newAsteroids.append(MediumAsteroid(self.x, self.y, self.xVelocity, self.yVelocity, self.newAsteroids))
         a = MediumAsteroid(self.x, self.y, 0, 0, self.newAsteroids)
         a.randomVelocity(random.choice([-1, 1]), random.choice([-1, 1]))
@@ -312,35 +312,44 @@ class LargeAsteroid(Asteroid):
         return self.amount
 
 
+def radarIsClose(v):
+    if 0 < v < 150:
+        return True
+
+
+def radarIsEmpty(v):
+    if v == 0:
+        return True
+
+
 class AsteroidsGame():
 
     def __init__(self, setting):
         self.chosenAction = 0
-        self.astCount =1
+        self.astCount = 1
         self.delta = 0
         self.asteroidSpawnTime = 0
         self.spawnCount = 0
         self.totalAsteroids = 0
         self.player = Player()
+        #default settings
+        self.evaluate = self.evaluateLives
         self.actionSet = self.multiActions
-        if setting==0:
+        self.resetGame = self.resetGameNormal
+        if setting == 1:
             multiplier = 1.0
-            self.resetGame = self.resetGameNormal
-        elif setting==1:
-            multiplier= 1.0
             self.resetGame = self.resetGameEasy
-        elif setting ==2:
+        elif setting == 2:
             multiplier = 1.0
-            self.resetGame = self.resetGameNormal
             self.actionSet = self.noShootActions
-        elif setting ==3:
+        elif setting == 3:
             multiplier = 1.0
-            self.resetGame = self.resetGameNormal
             self.actionSet = self.aimActions
+        elif setting ==4:
+            self.evaluate =  self.evaluateIRL
         self.resetGame()
 
-
-    #global vars
+    # global vars
     run = True
     gameover = False
     bullets = []
@@ -350,36 +359,33 @@ class AsteroidsGame():
     count = 0
     lives = 3
     livesFlag = False
-    #debug variables
+    # debug variables
     debug = False
-    debugLines=[]
-    radarLines=[]
-    shapeLines =[]
-
-
+    debugLines = []
+    radarLines = []
+    shapeLines = []
 
     def resetGameEasy(self):
-        #reset variables
+        # reset variables
         self.score = 0
         self.lives = 3
         self.count = 0
-        self.gameover=False
+        self.gameover = False
         self.player.reset()
         self.asteroids.clear()
         self.bullets.clear()
         self.spawnCount = self.astCount
         self.totalAsteroids = self.spawnCount
         self.asteroidSpawnTime = 300
-        if self.astCount >5:
-            self.resetGame= self.resetGameNormal
-
+        if self.astCount > 5:
+            self.resetGame = self.resetGameNormal
 
     def resetGameNormal(self):
-        #reset variables
+        # reset variables
         self.score = 0
         self.lives = 3
         self.count = 0
-        self.gameover= False
+        self.gameover = False
         self.player.reset()
         self.asteroids.clear()
         self.bullets.clear()
@@ -387,14 +393,13 @@ class AsteroidsGame():
         self.totalAsteroids = self.spawnCount
         self.asteroidSpawnTime = 300
 
-
     def redrawWindow(self):
         win.blit(bg, (0, 0))
         font = pygame.font.SysFont('arial', 20)
         livesText = font.render('Lives: ' + str(self.lives), 1, (255, 255, 255))
         scoreText = font.render('Score: ' + str(self.score), 1, (255, 255, 255))
 
-        #draw player, bullets and asteroids
+        # draw player, bullets and asteroids
         self.player.draw(win)
         for b in self.bullets:
             if b.isOffScreen():
@@ -404,57 +409,57 @@ class AsteroidsGame():
         for a in self.asteroids:
             a.drawAt(win, a.x - a.size / 2, a.y - a.size / 2)
 
-        #draw text
+        # draw text
         win.blit(livesText, (25, 25))
         win.blit(scoreText, (screenW - 150, 25))
 
-        #if debug mode is on draw debug lines
+        # if debug mode is on draw debug lines
         if self.debug:
             i = 0
             for d in self.radarLines:
 
-                if i ==8:
+                if i == 8:
                     pygame.draw.line(win, (1, 100, 100), (self.player.x, self.player.y), (d.x, d.y))
                 else:
                     pass
-                    #pygame.draw.line(win, (255, 255, 0), (self.player.x, self.player.y), (d.x, d.y))
-                i+=1
+                    # pygame.draw.line(win, (255, 255, 0), (self.player.x, self.player.y), (d.x, d.y))
+                i += 1
             for d in self.debugLines:
-                #pygame.draw.line(win, (255, 0, 0), (self.player.x, self.player.y), (d.x, d.y))
+                # pygame.draw.line(win, (255, 0, 0), (self.player.x, self.player.y), (d.x, d.y))
                 pass
             for d in self.shapeLines:
                 pygame.draw.line(win, (255, 100, 0), (d[0].x, d[0].y), (d[1].x, d[1].y))
-#
+        #
 
         pygame.display.update()
 
-    #general col check bounding box to box
+    # general col check bounding box to box
     def collisionCheck(self, ax, ay, asize, bx, by, bsize):
-        ahalf = asize/2
-        bhalf = bsize/2
-        if (bx >= ax-ahalf and bx <= ax + ahalf) or (bx + bhalf >= ax-ahalf and bx + bsize - bhalf <= ax+ahalf):
-            if (by >= ay - ahalf and by <= ay + ahalf) or (by + bhalf >= ay-ahalf and by + bhalf <= ay + ahalf):
+        ahalf = asize / 2
+        bhalf = bsize / 2
+        if (bx >= ax - ahalf and bx <= ax + ahalf) or (bx + bhalf >= ax - ahalf and bx + bsize - bhalf <= ax + ahalf):
+            if (by >= ay - ahalf and by <= ay + ahalf) or (by + bhalf >= ay - ahalf and by + bhalf <= ay + ahalf):
                 return True
 
-    #a more thourough and expenisve col check for player to asteroid using pixel perfect col
-    def colCheckPlayerAsteroid(self, a,pr):
-        #general col detection
+    # a more thourough and expenisve col check for player to asteroid using pixel perfect col
+    def colCheckPlayerAsteroid(self, a, pr):
+        # general col detection
         if pr.colliderect(a.rect):
-            #pixel collision
+            # pixel collision
             pm = pygame.mask.from_surface(self.player.rotatedSurface.convert_alpha())
             am = pygame.mask.from_surface(a.img.convert_alpha())
-            self.outline =pm.outline()
-            self.outline2 =am.outline()
+            self.outline = pm.outline()
+            self.outline2 = am.outline()
 
             offset = (
-            a.x - a.size / 2 - self.player.rotatedRectangle.x, a.y - a.size / 2 - self.player.rotatedRectangle.y)
+                a.x - a.size / 2 - self.player.rotatedRectangle.x, a.y - a.size / 2 - self.player.rotatedRectangle.y)
             if pm.overlap(am, offset):
                 return True
         return False
 
     def update(self):
         clock.tick()
-        #print(str(clock.get_fps()))
+        # print(str(clock.get_fps()))
         self.count += 1
 
         if not self.gameover:
@@ -470,22 +475,22 @@ class AsteroidsGame():
                 # if there are no asteroids on screen then move to next "level""
                 if len(self.asteroids) == 0:
                     incr = max(1, int(float(self.totalAsteroids) * 0.1))
-                    self.totalAsteroids+=incr
+                    self.totalAsteroids += incr
                     self.spawnCount = self.totalAsteroids
-                    #move to next level of curriculum if scored greater than equal 20 pts per asteroid
-                    if self.score >= self.astCount*100:
-                        self.astCount +=1
+                    # move to next level of curriculum if scored greater than equal 20 pts per asteroid
+                    if self.score >= self.astCount * 100:
+                        self.astCount += 1
                     if self.asteroidSpawnTime > 100:
-                        self.asteroidSpawnTime -=2
+                        self.asteroidSpawnTime -= 2
 
-            #update bullets,asteroids
+            # update bullets,asteroids
             for b in self.bullets:
                 b.move()
             for a in self.asteroids:
                 a.move()
                 a.checkPos()
                 # col check between asteroid and player
-                if self.colCheckPlayerAsteroid(a,self.player.rotatedRectangle):
+                if self.colCheckPlayerAsteroid(a, self.player.rotatedRectangle):
                     self.lives -= 1
                     self.livesFlag = True
                     self.asteroids.pop(self.asteroids.index(a))
@@ -504,7 +509,7 @@ class AsteroidsGame():
                 self.asteroids.append(n)
             self.newAsteroids.clear()
 
-            #update player
+            # update player
             self.player.move()
             self.player.slow()
             self.player.checkPos()
@@ -521,13 +526,13 @@ class AsteroidsGame():
                         self.debug = False
                     print("debug: " + str(self.debug))
 
-    #simple distance
+    # simple distance
     def distance(self, ax, ay):
         dx, dy = self.player.x - ax, self.player.y - ay
         dist = math.hypot(dx, dy)
         return dist
 
-    def checkLineIntersection(self, x1,y1,x2,y2, asteroid):
+    def checkLineIntersection(self, x1, y1, x2, y2, asteroid):
         # check for intersection between line and line at asteroid origin
         frontVertical1 = Point(asteroid.x + asteroid.size / 2, asteroid.y - asteroid.size / 2)
         frontVertical2 = Point(asteroid.x + asteroid.size / 2, asteroid.y + asteroid.size / 2)
@@ -537,8 +542,8 @@ class AsteroidsGame():
         backVertical2 = Point(asteroid.x - asteroid.size / 2, asteroid.y + asteroid.size / 2)
         topHorizontal1 = Point(asteroid.x - asteroid.size / 2, asteroid.y + asteroid.size / 2)
         topHorizontal2 = Point(asteroid.x + asteroid.size / 2, asteroid.y + asteroid.size / 2)
-        p1 = Point(x1,y1)
-        p2 = Point(x2,y2)
+        p1 = Point(x1, y1)
+        p2 = Point(x2, y2)
 
         # check for intersection between line and asteroid axis
         if (intersect(p1, p2, frontVertical1, frontVertical2) or intersect(p1, p2, backVertical1, backVertical2)
@@ -556,38 +561,39 @@ class AsteroidsGame():
         self.radarLines.clear()
         self.shapeLines.clear()
 
-        #set angle to player's angle
+        # set angle to player's angle
         angle = self.player.angle
-        lines =16 #number of radar lines
-        radius = 400.0 #radius of radar
-        radar = [0.0] * lines #radar array, init to 0 each time
+        lines = 16  # number of radar lines
+        radius = 400.0  # radius of radar
+        radar = [0.0] * lines  # radar array, init to 0 each time
 
-        #sort the list so that nearest is at the front and will be first added to radar
+        # sort the list so that nearest is at the front and will be first added to radar
         self.asteroids = sorted(self.asteroids, key=lambda a: self.distance(a.x, a.y))
         # loop through N,NE,E,SE,S,SW,W,NW directions and check for asteroids if the player can "see" them
         for i in range(lines):
             # find the end point of the player's vision
-            x2 = self.player.x + radius* math.sin(math.radians(angle))
-            y2 = self.player.y + radius* math.cos(math.radians(angle))
-            angle += 360.0/lines  # next line
+            x2 = self.player.x + radius * math.sin(math.radians(angle))
+            y2 = self.player.y + radius * math.cos(math.radians(angle))
+            angle += 360.0 / lines  # next line
             if self.debug:
                 self.radarLines.append(Point(x2, y2))  # add to debug to be drawn
             # check all asteroids for intersection
             for a in self.asteroids:
-                if self.checkLineIntersection(self.player.x,self.player.y, x2,y2,a):
-                    #set the value to the distance
-                    radar[i] = (self.player.findDistanceToPoint(a.x,a.y) - a.size/2.0) / (radius+25)
+                if self.checkLineIntersection(self.player.x, self.player.y, x2, y2, a):
+                    # set the value to the distance
+                    radar[i] = (self.player.findDistanceToPoint(a.x, a.y) - a.size / 2.0) / (radius + 25)
                     if self.debug:
-                        self.debugLines.append(Point(x2,y2))  # add this to be drawn
+                        self.debugLines.append(Point(x2, y2))  # add this to be drawn
                     break
         self.radar = radar  # store radar
         # observation object to be returned including information about the player
-        o = [(self.player.x+50)/900, (self.player.y+50)/900, self.player.velocityX/3.6, self.player.velocityY/3.6, self.player.angle/360]
-        #add radar info to observation
-        o = o+list(radar)
+        o = [(self.player.x + 50) / 900, (self.player.y + 50) / 900, self.player.velocityX / 3.6,
+             self.player.velocityY / 3.6, self.player.angle / 360]
+        # add radar info to observation
+        o = o + list(radar)
         return o
 
-    def action(self, action,k,renderMode):
+    def action(self, action, k, renderMode):
         self.delta = self.score
 
         for i in range(k):
@@ -597,13 +603,11 @@ class AsteroidsGame():
                 if self.debug:
                     self.redrawWindow()
             else:
-                print("Frame:"+ str(self.count))
+                print("Frame:" + str(self.count))
         # get change in score
         self.delta = self.score - self.delta
 
-
-
-    def noShootActions(self,action):
+    def noShootActions(self, action):
         if action == 0:
             self.player.moveForward()
         elif action == 1:
@@ -620,8 +624,8 @@ class AsteroidsGame():
             # do nothing
             pass
 
-    #reduuced set of Actions
-    def simpleActions(self,action):
+    # reduuced set of Actions
+    def simpleActions(self, action):
         if action == 0:
             self.player.moveForward()
         elif action == 1:
@@ -632,9 +636,9 @@ class AsteroidsGame():
             if self.player.shoot():
                 self.bullets.append(Bullet(self.player.head, self.player.cosine, self.player.sine))
         elif action == 4:
-            pass # do nothing
+            pass  # do nothing
 
-    def noShootActions(self,action):
+    def noShootActions(self, action):
         if action == 0:
             self.player.moveForward()
         elif action == 1:
@@ -651,8 +655,8 @@ class AsteroidsGame():
             # do nothing
             pass
 
-    #set of actions for aiming
-    def aimActions(self,action):
+    # set of actions for aiming
+    def aimActions(self, action):
         if action == 0:
             self.player.turnLeft()
         elif action == 1:
@@ -664,7 +668,7 @@ class AsteroidsGame():
             # do nothing
             pass
 
-    #set of every action
+    # set of every action
     def multiActions(self, action):
         self.chosenAction = action
         if action == 0:
@@ -708,45 +712,40 @@ class AsteroidsGame():
             # do nothing
             pass
 
-    #rewards
-    #standard - reward score, neg for death
-    #avoid - reward for every frame, neg for death
-    #aim - standard reward
-    #irl - standard reward +
+    # rewards
+    # standard - reward score, neg for death
+    # avoid - reward for every frame, neg for death
+    # aim - standard reward
+    # irl - standard reward +
     # avoid reward
     # aimed shot reward
 
-    #evaluate based on score gained and if life is lost
-    def evaluate(self):
-        self.evaluateIRL()
-        reward = self.delta
-        if self.livesFlag:
-            reward = reward - 1000
-            self.livesFlag = False  # reset flag
-        else:
-            reward +=1
-        return reward
 
     def evaluateLives(self):
-        reward = self.delta
+        reward =self.delta
         if self.livesFlag:
             reward = reward - 1000
             self.livesFlag = False  # reset flag
         return reward
 
     def evaluateIRL(self):
-        #if aiming and shooting
-        reward =0
-        if self.radar[8] > 0 and self.chosenAction >=5 and self.chosenAction<=10 :
-            reward+=2
-        if (self.radar[0] >0 or self.radar[15] >0 or self.radar[1] >0)  and (self.radar[7]  ==0 and self.radar[8] ==0 and self.radar==0) and (self.chosenAction <=2  or (self.chosenAction >=5 and self.chosenAction <=7)):
-            reward +=1
+        # if aiming and shooting
+        reward = self.evaluateLives()
+        # reward for shooting
+        if not radarIsEmpty(self.radar[8]) and 5 <= self.chosenAction <= 10:
+            reward += 1
 
+        # reward for moving forward when empty
+        if ((radarIsClose(self.radar[0]) or radarIsClose(self.radar[1]) or radarIsClose(self.radar[15])) and
+                (radarIsEmpty(self.radar[7]) or radarIsEmpty(self.radar[8]) or radarIsEmpty(self.radar[9]))):
+            reward += 0.1
+
+        #neg reward for being to close to edges
+        if self.player.x < 50 or self.player.x > 750 or self.player.y < 50 or self.player.y >750 :
+            reward -= 0.1
         return reward
 
-
-
-    #check if is done
+    # check if is done
     def is_done(self):
         if self.lives <= 0:
             self.gameover = True
