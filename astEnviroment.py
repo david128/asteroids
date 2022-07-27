@@ -6,11 +6,15 @@ import gym
 from gym import spaces
 import numpy as np
 
+from stable_baselines3 import A2C
+from stable_baselines3 import DQN
+from stable_baselines3 import PPO
 
 class AstEnv(gym.Env):
 
     def __init__(self):
         self.k = 4
+        self.score = 0
         self.asteroidsGame = asteroidsEasy.AsteroidsGame(0)
         self.action_space = spaces.Discrete(12)
         self.observation_space = spaces.Box(low=-0, high=1, shape=(21,), dtype=np.float32)
@@ -26,6 +30,7 @@ class AstEnv(gym.Env):
         obs = self.asteroidsGame.observe()
         reward = self.asteroidsGame.evaluate()
         done = self.asteroidsGame.is_done()
+        self.score = self.asteroidsGame.score
         return obs, reward, done, {}
 
     def render(self, mode="human", close=False):
@@ -43,6 +48,7 @@ class CurriculumEnv(gym.Env):
         self.k = 4
         self.s = 1
         self.tR = 0
+        self.score = 0
         self.asteroidsGame = asteroidsEasy.AsteroidsGame(1)
         self.action_space = spaces.Discrete(12)
         self.observation_space = spaces.Box(low=-0, high=1, shape=(21,), dtype=np.float32)
@@ -59,6 +65,7 @@ class CurriculumEnv(gym.Env):
         reward = self.asteroidsGame.evaluate()
         self.tR +=reward
         done = self.asteroidsGame.is_done()
+        self.score = self.asteroidsGame.score
         return obs, reward, done, {}
 
     def render(self, mode="human", close=False):
@@ -74,6 +81,7 @@ class AvoidEnv(gym.Env):
 
     def __init__(self):
         self.k = 4
+        self.score = 0
         self.asteroidsGame = asteroidsEasy.AsteroidsGame(2)
         self.action_space = spaces.Discrete(6)
         self.observation_space = spaces.Box(low=-0, high=1, shape=(21,), dtype=np.float32)
@@ -89,6 +97,7 @@ class AvoidEnv(gym.Env):
         obs = self.asteroidsGame.observe()
         reward = self.asteroidsGame.evaluate()
         done = self.asteroidsGame.is_done()
+        self.score = self.asteroidsGame.score
         return obs, reward, done, {}
 
     def render(self, mode="human", close=False):
@@ -104,6 +113,7 @@ class AimEnv(gym.Env):
 
     def __init__(self):
         self.k = 4
+        self.score =0
         self.asteroidsGame = asteroidsEasy.AsteroidsGame(3)
         self.action_space = spaces.Discrete(4)
         self.observation_space = spaces.Box(low=-0, high=1, shape=(21,), dtype=np.float32)
@@ -119,6 +129,7 @@ class AimEnv(gym.Env):
         obs = self.asteroidsGame.observe()
         reward = self.asteroidsGame.evaluate()
         done = self.asteroidsGame.is_done()
+        self.score = self.asteroidsGame.score
         return obs, reward, done, {}
 
     def render(self, mode="human", close=False):
@@ -130,10 +141,11 @@ class AimEnv(gym.Env):
         self.k = k
 
 
-class irlEnv(gym.Env):
+class RSEnv(gym.Env):
 
     def __init__(self):
         self.k = 4
+        self.score =0
         self.asteroidsGame = asteroidsEasy.AsteroidsGame(4)
         self.action_space = spaces.Discrete(12)
         self.observation_space = spaces.Box(low=-0, high=1, shape=(21,), dtype=np.float32)
@@ -149,6 +161,7 @@ class irlEnv(gym.Env):
         obs = self.asteroidsGame.observe()
         reward = self.asteroidsGame.evaluate()
         done = self.asteroidsGame.is_done()
+        self.score =self.asteroidsGame.score
         return obs, reward, done, {}
 
     def render(self, mode="human", close=False):
@@ -158,3 +171,98 @@ class irlEnv(gym.Env):
 
     def setK(self,k):
         self.k = k
+
+class HRLEnv(gym.Env):
+
+
+
+
+    def __init__(self):
+        self.obs = None
+        self.k = 4
+        self.score =0
+        self.asteroidsGame = asteroidsEasy.AsteroidsGame(0)
+        self.action_space = spaces.Discrete(2)
+        self.observation_space = spaces.Box(low=-0, high=1, shape=(21,), dtype=np.float32)
+
+        #components
+        avoidEnv = AvoidEnv()
+        aimEnv = AimEnv()
+        self.avoidModel = None
+        self.aimModel = None
+
+    def setModels(self, aimModel, avoidModel):
+        self.avoidModel=avoidModel
+        self.aimModel=aimModel
+
+    def reset(self):
+        del self.asteroidsGame
+        self.asteroidsGame = asteroidsEasy.AsteroidsGame(0)
+        self.obs = self.asteroidsGame.observe()
+        return self.obs
+
+    def step(self, action):
+
+        avoidAction, _states = self.avoidModel.predict(self.obs, deterministic=True)
+        aimAction, _states = self.aimModel.predict(self.obs, deterministic=True)
+
+        #try to aggregate decision
+        agg = self.actionAggregator(aimAction,avoidAction)
+        #if agg != -1:
+            #self.asteroidsGame.action(agg, k=self.k, renderMode=True)
+        #HRL decides to aim or avoid
+        if action ==0:
+            self.asteroidsGame.hrlAction(False, avoidAction, k=self.k, renderMode=True)
+        else:
+            self.asteroidsGame.hrlAction(True, aimAction, k=self.k, renderMode=True)
+
+        self.obs = self.asteroidsGame.observe()
+        reward = self.asteroidsGame.evaluate()
+        done = self.asteroidsGame.is_done()
+        self.score =self.asteroidsGame.score
+        return self.obs, reward, done, {}
+
+    def render(self, mode="human", close=False):
+        # render now in action
+        # self.asteroidsGame.redrawWindow()
+        pass
+
+    def setK(self,k):
+        self.k = k
+
+    def actionAggregator(self, aim, avoid):
+        action = 0
+        agree = True
+        if aim == 0:
+            if avoid == 1:
+                action = 1
+            elif avoid == 3:
+                action = 3
+            else:
+                agree = False
+        elif aim == 1:
+            if avoid == 2:
+                action = 2
+            elif avoid == 4:
+                action = 4
+            else:
+                agree = False
+        elif aim == 2:
+            if avoid == 0:
+                action = 5
+            elif avoid == 1:
+                action = 6
+            elif avoid == 2:
+                action = 7
+            elif avoid == 3:
+                action = 8
+            elif avoid == 4:
+                action = 9
+            elif avoid == 5:
+                action = 10
+        if agree:
+            return action
+        else:
+            return -1
+
+

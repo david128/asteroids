@@ -342,6 +342,7 @@ class AsteroidsGame():
         elif setting == 2:
             multiplier = 1.0
             self.actionSet = self.noShootActions
+            self.evaluate = self.evaluateAvoid
         elif setting == 3:
             multiplier = 1.0
             self.actionSet = self.aimActions
@@ -377,7 +378,7 @@ class AsteroidsGame():
         self.spawnCount = self.astCount
         self.totalAsteroids = self.spawnCount
         self.asteroidSpawnTime = 300
-        if self.astCount > 5:
+        if self.astCount > 7:
             self.resetGame = self.resetGameNormal
 
     def resetGameNormal(self):
@@ -429,7 +430,7 @@ class AsteroidsGame():
                 pass
             for d in self.shapeLines:
                 pygame.draw.line(win, (255, 100, 0), (d[0].x, d[0].y), (d[1].x, d[1].y))
-        #
+
 
         pygame.display.update()
 
@@ -478,7 +479,7 @@ class AsteroidsGame():
                     self.totalAsteroids += incr
                     self.spawnCount = self.totalAsteroids
                     # move to next level of curriculum if scored greater than equal 20 pts per asteroid
-                    if self.score >= self.astCount * 100:
+                    if self.score >= self.astCount * 620:
                         self.astCount += 1
                     if self.asteroidSpawnTime > 100:
                         self.asteroidSpawnTime -= 2
@@ -595,9 +596,24 @@ class AsteroidsGame():
 
     def action(self, action, k, renderMode):
         self.delta = self.score
-
         for i in range(k):
             self.actionSet(action)
+            self.update()
+            if renderMode:
+                if self.debug:
+                    self.redrawWindow()
+            else:
+                print("Frame:" + str(self.count))
+        # get change in score
+        self.delta = self.score - self.delta
+
+    def hrlAction(self,aim, action,k,renderMode):
+        self.delta = self.score
+        for i in range(k):
+            if aim:
+                self.aimActions(action)
+            else:
+                self.noShootActions(action)
             self.update()
             if renderMode:
                 if self.debug:
@@ -720,12 +736,16 @@ class AsteroidsGame():
     # avoid reward
     # aimed shot reward
 
-
     def evaluateLives(self):
         reward =self.delta
         if self.livesFlag:
             reward = reward - 1000
             self.livesFlag = False  # reset flag
+        return reward
+
+    def evaluateAvoid(self):
+        reward = self.evaluateLives()
+        reward += 0.1
         return reward
 
     def evaluateIRL(self):

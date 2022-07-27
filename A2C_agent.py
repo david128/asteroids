@@ -1,6 +1,8 @@
 from stable_baselines3 import A2C
 import os
 import time
+import tensorboardCallback
+
 
 class A2C_agent():
 
@@ -21,6 +23,7 @@ class A2C_agent():
 
         for i in range(1, episodes):
             print("Ep " + str(i))
-            self.model.learn(total_timesteps=timesteps, reset_num_timesteps=False, tb_log_name=self.name)
+            self.model.learn(total_timesteps=timesteps, reset_num_timesteps=False,
+                             tb_log_name=self.name, callback=tensorboardCallback.TensorboardCallback())
             self.model.save(f"{self.models_dir}/{self.name}/{timesteps * i}")
 
