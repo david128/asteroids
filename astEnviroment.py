@@ -234,31 +234,17 @@ class HRLEnv(gym.Env):
         action = 0
         agree = True
         if aim == 0:
-            if avoid == 1:
-                action = 1
-            elif avoid == 3:
+            if avoid == 3:
                 action = 3
             else:
                 agree = False
         elif aim == 1:
-            if avoid == 2:
-                action = 2
-            elif avoid == 4:
+            if avoid == 4:
                 action = 4
             else:
                 agree = False
         elif aim == 2:
-            if avoid == 0:
-                action = 5
-            elif avoid == 1:
-                action = 6
-            elif avoid == 2:
-                action = 7
-            elif avoid == 3:
-                action = 8
-            elif avoid == 4:
-                action = 9
-            elif avoid == 5:
+            if avoid == 5:
                 action = 10
         if agree:
             return action
