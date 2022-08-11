@@ -10,14 +10,16 @@ from stable_baselines3 import A2C
 from stable_baselines3 import DQN
 from stable_baselines3 import PPO
 
+
 class AstEnv(gym.Env):
 
-    def __init__(self):
+    def __init__(self, do_render):
         self.k = 4
         self.score = 0
         self.asteroidsGame = asteroidsEasy.AsteroidsGame(0)
         self.action_space = spaces.Discrete(12)
         self.observation_space = spaces.Box(low=-0, high=1, shape=(21,), dtype=np.float32)
+        self.do_render = do_render
 
     def reset(self):
         del self.asteroidsGame
@@ -26,7 +28,7 @@ class AstEnv(gym.Env):
         return obs
 
     def step(self, action):
-        self.asteroidsGame.action(action, k=self.k, renderMode=True)
+        self.asteroidsGame.action(action, k=self.k, alwaysRender=self.do_render)
         obs = self.asteroidsGame.observe()
         reward = self.asteroidsGame.evaluate()
         done = self.asteroidsGame.is_done()
@@ -44,7 +46,7 @@ class AstEnv(gym.Env):
 
 class CurriculumEnv(gym.Env):
 
-    def __init__(self):
+    def __init__(self, do_render):
         self.k = 4
         self.s = 1
         self.tR = 0
@@ -52,6 +54,7 @@ class CurriculumEnv(gym.Env):
         self.asteroidsGame = asteroidsEasy.AsteroidsGame(1)
         self.action_space = spaces.Discrete(12)
         self.observation_space = spaces.Box(low=-0, high=1, shape=(21,), dtype=np.float32)
+        self.do_render = do_render
 
     def reset(self):
         self.tR=0
@@ -77,14 +80,15 @@ class CurriculumEnv(gym.Env):
         self.k = k
 
 
-class AvoidEnv(gym.Env):
+class AvoidEnv(gym.Env ):
 
-    def __init__(self):
+    def __init__(self, do_render):
         self.k = 4
         self.score = 0
         self.asteroidsGame = asteroidsEasy.AsteroidsGame(2)
         self.action_space = spaces.Discrete(6)
         self.observation_space = spaces.Box(low=-0, high=1, shape=(21,), dtype=np.float32)
+        self.do_render = do_render
 
     def reset(self):
         del self.asteroidsGame
@@ -111,12 +115,13 @@ class AvoidEnv(gym.Env):
 
 class AimEnv(gym.Env):
 
-    def __init__(self):
+    def __init__(self, do_render):
         self.k = 4
         self.score =0
         self.asteroidsGame = asteroidsEasy.AsteroidsGame(3)
         self.action_space = spaces.Discrete(4)
         self.observation_space = spaces.Box(low=-0, high=1, shape=(21,), dtype=np.float32)
+        self.do_render = do_render
 
     def reset(self):
         del self.asteroidsGame
@@ -143,12 +148,13 @@ class AimEnv(gym.Env):
 
 class RSEnv(gym.Env):
 
-    def __init__(self):
+    def __init__(self, do_render):
         self.k = 4
         self.score =0
         self.asteroidsGame = asteroidsEasy.AsteroidsGame(4)
         self.action_space = spaces.Discrete(12)
         self.observation_space = spaces.Box(low=-0, high=1, shape=(21,), dtype=np.float32)
+        self.do_render = do_render
 
     def reset(self):
         del self.asteroidsGame
@@ -177,17 +183,18 @@ class HRLEnv(gym.Env):
 
 
 
-    def __init__(self):
+    def __init__(self, do_render):
         self.obs = None
         self.k = 4
         self.score =0
         self.asteroidsGame = asteroidsEasy.AsteroidsGame(0)
         self.action_space = spaces.Discrete(2)
         self.observation_space = spaces.Box(low=-0, high=1, shape=(21,), dtype=np.float32)
+        self.do_render = do_render
 
         #components
-        avoidEnv = AvoidEnv()
-        aimEnv = AimEnv()
+        avoidEnv = AvoidEnv(self.do_render)
+        aimEnv = AimEnv(self.do_render)
         self.avoidModel = None
         self.aimModel = None
 
@@ -212,9 +219,9 @@ class HRLEnv(gym.Env):
             #self.asteroidsGame.action(agg, k=self.k, renderMode=True)
         #HRL decides to aim or avoid
         if action ==0:
-            self.asteroidsGame.hrlAction(False, avoidAction, k=self.k, renderMode=True)
+            self.asteroidsGame.hrlAction(False, avoidAction, k=self.k, renderMode=self.do_render)
         else:
-            self.asteroidsGame.hrlAction(True, aimAction, k=self.k, renderMode=True)
+            self.asteroidsGame.hrlAction(True, aimAction, k=self.k, renderMode=self.do_render)
 
         self.obs = self.asteroidsGame.observe()
         reward = self.asteroidsGame.evaluate()

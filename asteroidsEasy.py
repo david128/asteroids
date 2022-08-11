@@ -416,17 +416,10 @@ class AsteroidsGame():
 
         # if debug mode is on draw debug lines
         if self.debug:
-            i = 0
             for d in self.radarLines:
-
-                if i == 8:
-                    pygame.draw.line(win, (1, 100, 100), (self.player.x, self.player.y), (d.x, d.y))
-                else:
-                    pass
-                    # pygame.draw.line(win, (255, 255, 0), (self.player.x, self.player.y), (d.x, d.y))
-                i += 1
+                pygame.draw.line(win, (255, 255, 0), (self.player.x, self.player.y), (d.x, d.y))
             for d in self.debugLines:
-                # pygame.draw.line(win, (255, 0, 0), (self.player.x, self.player.y), (d.x, d.y))
+                pygame.draw.line(win, (255, 0, 0), (self.player.x, self.player.y), (d.x, d.y))
                 pass
             for d in self.shapeLines:
                 pygame.draw.line(win, (255, 100, 0), (d[0].x, d[0].y), (d[1].x, d[1].y))
@@ -594,16 +587,16 @@ class AsteroidsGame():
         o = o + list(radar)
         return o
 
-    def action(self, action, k, renderMode):
+    def action(self, action, k, alwaysRender):
         self.delta = self.score
         for i in range(k):
             self.actionSet(action)
             self.update()
-            if renderMode:
-                if self.debug:
+            if alwaysRender:
                     self.redrawWindow()
             else:
-                print("Frame:" + str(self.count))
+                if self.debug:
+                    self.redrawWindow()
         # get change in score
         self.delta = self.score - self.delta
 
@@ -616,10 +609,10 @@ class AsteroidsGame():
                 self.noShootActions(action)
             self.update()
             if renderMode:
-                if self.debug:
                     self.redrawWindow()
             else:
-                print("Frame:" + str(self.count))
+                if self.debug:
+                    self.redrawWindow()
         # get change in score
         self.delta = self.score - self.delta
 
