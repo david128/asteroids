@@ -13,12 +13,15 @@ from stable_baselines3 import PPO
 import os
 
 
-env = astEnviroment.AstEnv()
-cEnv = astEnviroment.CurriculumEnv()
-aimEnv = astEnviroment.AimEnv()
-avoidEnv = astEnviroment.AvoidEnv()
-rsEnv = astEnviroment.RSEnv()
-hrlEnv = astEnviroment.HRLEnv()
+alwaysRender = True
+
+env = astEnviroment.AstEnv(alwaysRender)
+cEnv = astEnviroment.CurriculumEnv(alwaysRender)
+aimEnv = astEnviroment.AimEnv(alwaysRender)
+avoidEnv = astEnviroment.AvoidEnv(alwaysRender)
+rsEnv = astEnviroment.RSEnv(alwaysRender)
+hrlEnv = astEnviroment.HRLEnv(alwaysRender)
+
 env.reset()
 cEnv.reset()
 rsEnv.reset()
@@ -26,12 +29,14 @@ hrlEnv.reset()
 obs = env.reset()
 
 # load component models
+
 a2CAvoidModel = A2C.load("models/components/a2c/avoid.zip", env=avoidEnv)
 a2cAimModel = A2C.load("models/components/a2c/aim.zip", env=aimEnv)
 dqnAvoidModel = DQN.load("models/components/DQN/avoid.zip", env=avoidEnv)
 dqnAimModel = DQN.load("models/components/DQN/aim.zip", env=aimEnv)
 ppoAvoidModel = PPO.load("models/components/PPO/avoid.zip", env=avoidEnv)
 ppoAimModel = PPO.load("models/components/PPO/aim.zip", env=aimEnv)
+
 
 TIMESTEPS = 25000
 NUMEPISODES = 100
@@ -136,7 +141,7 @@ if testRandom:
         print("ep:" + str(i) + " " + str(env.score))
 
 if testRL:
-
+    '''
     modelList.append((A2C.load(str(cwd) + "/models/testModels/a2c/standard/850000.zip", env=env), "A2C_Standard"))
     modelList.append((DQN.load(str(cwd) + "/models/testModels/dqn/standard/1325000.zip", env=env), "DQN_Standard"))
     modelList.append((PPO.load(str(cwd) + "/models/testModels/ppo/standard/2475000.zip", env=env), "PPO_Standard"))
@@ -148,14 +153,14 @@ if testRL:
     modelList.append((A2C.load(str(cwd) + "/models/testModels/a2c/rs/425000.zip", env=env), "A2C_rs"))
     modelList.append((DQN.load(str(cwd) + "/models/testModels/dqn/rs/2350000.zip", env=env), "DQN_rs"))
     modelList.append((PPO.load(str(cwd) + "/models/testModels/ppo/rs/2475000.zip", env=env), "PPO_rs"))
-
+    '''
 
     #loop through models
     for m in modelList:
         print(m[1])
         if outputFiles:
             f = open(("logs/results/" + m[1] + ".csv"), "x")
-        for i in range(2):
+        for i in range(1):
             obs = env.reset()
             done = False
             while not done:
@@ -183,7 +188,7 @@ if testRL:
         if outputFiles:
             f = open(("logs/results/" + m[1] + ".csv"), "x")
         hrlEnv.setModels(avoidModel=m[2],aimModel=m[3])
-        for i in range(100):
+        for i in range(1):
             obs = hrlEnv.reset()
             done = False
             while not done:
