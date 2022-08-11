@@ -11,8 +11,7 @@ from stable_baselines3 import DQN
 from stable_baselines3 import PPO
 
 import os
-import time
-import asteroidsPlayable
+
 
 env = astEnviroment.AstEnv()
 cEnv = astEnviroment.CurriculumEnv()
@@ -20,8 +19,6 @@ aimEnv = astEnviroment.AimEnv()
 avoidEnv = astEnviroment.AvoidEnv()
 rsEnv = astEnviroment.RSEnv()
 hrlEnv = astEnviroment.HRLEnv()
-env.setK(4)
-cEnv.setK(4)
 env.reset()
 cEnv.reset()
 rsEnv.reset()
@@ -41,16 +38,16 @@ NUMEPISODES = 100
 
 cwd = os.getcwd()  # Get the current working directory (cwd)
 
-#asteroidsPlayable.play()
 
+#turn training off
 trainStandard = False
 trainCur = False
 trainRS = False
 trainComponents = False
 trainHRL = False
 
-testRL = False
-testRandom = False
+testRL = True
+testRandom = True
 
 outputFiles = False
 
@@ -100,12 +97,12 @@ for _ in range(3):
 
         agent = DQN_agent.DQN_agent(aimEnv,"DQN-aim")
         agent.train(TIMESTEPS, NUMEPISODES)
-        for _ in range(2):
-            agent = PPO_agent.PPO_agent(avoidEnv,"PPO-avoid")
-            agent.train(TIMESTEPS, NUMEPISODES)
 
-            agent = PPO_agent.PPO_agent(aimEnv,"PPO-aim")
-            agent.train(TIMESTEPS, NUMEPISODES)
+        agent = PPO_agent.PPO_agent(avoidEnv,"PPO-avoid")
+        agent.train(TIMESTEPS, NUMEPISODES)
+
+        agent = PPO_agent.PPO_agent(aimEnv,"PPO-aim")
+        agent.train(TIMESTEPS, NUMEPISODES)
 
     if trainHRL:
 
@@ -125,7 +122,8 @@ modelList =[]
 
 if testRandom:
     print("Random")
-    f = open(("logs/results/random.csv"), "x")
+    if outputFiles:
+        f = open(("logs/results/random.csv"), "x")
     for i in range(NUMEPISODES):
         obs = env.reset()
         done = False
@@ -133,7 +131,8 @@ if testRandom:
             action = env.action_space.sample()
             obs, rewards, done, info = env.step(action)
         # print result to file
-        f.write(str(env.score) + ",")
+        if outputFiles:
+            f.write(str(env.score) + ",")
         print("ep:" + str(i) + " " + str(env.score))
 
 if testRL:

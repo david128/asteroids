@@ -9,16 +9,18 @@ import collections
 
 pygame.init()
 
+
+#game vars
 font = cv2.FONT_HERSHEY_COMPLEX_SMALL
 shipImage = pygame.image.load("ship.png")
 ast100Img = pygame.image.load("ast100.png")
 ast50Img = pygame.image.load("ast50.png")
 ast25Img = pygame.image.load("ast25.png")
 bg = pygame.image.load("starbg.png")
-
 screenW = 800
 screenH = 800
 
+#pygame vars
 pygame.display.set_caption("Asteroids")
 win = pygame.display.set_mode((screenW, screenH))
 clock = pygame.time.Clock()
@@ -106,6 +108,7 @@ class Player(GameObject):
     def sqr(self, x):
         return x * x
 
+    #returns distance squared
     def dist2(self, v, w):
         return (self.sqr(v[0] - w[0]) + self.sqr(v[1] - w[1]))
 
@@ -728,13 +731,6 @@ class AsteroidsGame():
             # do nothing
             pass
 
-    # rewards
-    # standard - reward score, neg for death
-    # avoid - reward for every frame, neg for death
-    # aim - standard reward
-    # irl - standard reward +
-    # avoid reward
-    # aimed shot reward
 
     def evaluateLives(self):
         reward =self.delta

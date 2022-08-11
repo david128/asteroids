@@ -1,6 +1,6 @@
-import asteroids
+
 import asteroidsEasy
-import asteroidsNormal
+
 
 import gym
 from gym import spaces
