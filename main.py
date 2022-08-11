@@ -11,8 +11,7 @@ from stable_baselines3 import DQN
 from stable_baselines3 import PPO
 
 import os
-import time
-import asteroidsPlayable
+
 
 alwaysRender = True
 
@@ -22,6 +21,7 @@ aimEnv = astEnviroment.AimEnv(alwaysRender)
 avoidEnv = astEnviroment.AvoidEnv(alwaysRender)
 rsEnv = astEnviroment.RSEnv(alwaysRender)
 hrlEnv = astEnviroment.HRLEnv(alwaysRender)
+
 env.reset()
 cEnv.reset()
 rsEnv.reset()
@@ -43,8 +43,8 @@ NUMEPISODES = 100
 
 cwd = os.getcwd()  # Get the current working directory (cwd)
 
-#asteroidsPlayable.play()
 
+#turn training off
 trainStandard = False
 trainCur = False
 trainRS = False
@@ -52,7 +52,7 @@ trainComponents = False
 trainHRL = False
 
 testRL = True
-testRandom = False
+testRandom = True
 
 outputFiles = False
 
