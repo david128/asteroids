@@ -13,7 +13,7 @@ from stable_baselines3 import PPO
 import os
 
 
-alwaysRender = True
+alwaysRender = False
 
 env = astEnviroment.AstEnv(alwaysRender)
 cEnv = astEnviroment.CurriculumEnv(alwaysRender)
